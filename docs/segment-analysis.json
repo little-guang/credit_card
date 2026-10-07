@@ -1,0 +1,344 @@
+{
+  "rows": 30000,
+  "default_rate": 22.12,
+  "dimensions": {
+    "age_group": "年齡",
+    "sex": "性別",
+    "education": "學歷",
+    "marriage": "婚姻狀況"
+  },
+  "measures": {
+    "median_credit_limit": "信用額度中位數",
+    "median_latest_bill": "最近一期帳單中位數",
+    "median_avg_bill": "近六期平均帳單中位數",
+    "median_latest_payment": "最近一期還款中位數",
+    "median_avg_payment": "近六期平均還款中位數",
+    "default_rate": "下一期違約比例"
+  },
+  "groups": [
+    {
+      "dimension": "age_group",
+      "group": "21–29歲",
+      "count": 9618,
+      "median_credit_limit": 90000.0,
+      "median_latest_bill": 23311.0,
+      "median_avg_bill": 21366.0,
+      "median_latest_payment": 2000.0,
+      "median_avg_payment": 2076.5833,
+      "default_rate": 22.8426
+    },
+    {
+      "dimension": "age_group",
+      "group": "30–39歲",
+      "count": 11238,
+      "median_credit_limit": 180000.0,
+      "median_latest_bill": 21714.0,
+      "median_avg_bill": 21148.0,
+      "median_latest_payment": 2500.0,
+      "median_avg_payment": 2874.75,
+      "default_rate": 20.2527
+    },
+    {
+      "dimension": "age_group",
+      "group": "40–49歲",
+      "count": 6464,
+      "median_credit_limit": 160000.0,
+      "median_latest_bill": 21815.0,
+      "median_avg_bill": 20345.6667,
+      "median_latest_payment": 2191.0,
+      "median_avg_payment": 2438.1667,
+      "default_rate": 22.9734
+    },
+    {
+      "dimension": "age_group",
+      "group": "50–59歲",
+      "count": 2341,
+      "median_credit_limit": 120000.0,
+      "median_latest_bill": 22136.0,
+      "median_avg_bill": 20853.8333,
+      "median_latest_payment": 2047.0,
+      "median_avg_payment": 2029.0,
+      "default_rate": 24.8612
+    },
+    {
+      "dimension": "age_group",
+      "group": "60歲以上",
+      "count": 339,
+      "median_credit_limit": 160000.0,
+      "median_latest_bill": 22715.0,
+      "median_avg_bill": 22823.6667,
+      "median_latest_payment": 2000.0,
+      "median_avg_payment": 2106.6667,
+      "default_rate": 28.3186
+    },
+    {
+      "dimension": "sex",
+      "group": "女性",
+      "count": 18112,
+      "median_credit_limit": 150000.0,
+      "median_latest_bill": 21097.0,
+      "median_avg_bill": 20262.1667,
+      "median_latest_payment": 2124.5,
+      "median_avg_payment": 2464.8333,
+      "default_rate": 20.7763
+    },
+    {
+      "dimension": "sex",
+      "group": "男性",
+      "count": 11888,
+      "median_credit_limit": 130000.0,
+      "median_latest_bill": 24185.0,
+      "median_avg_bill": 22039.3333,
+      "median_latest_payment": 2100.0,
+      "median_avg_payment": 2268.0,
+      "default_rate": 24.1672
+    },
+    {
+      "dimension": "education",
+      "group": "其他",
+      "count": 123,
+      "median_credit_limit": 200000.0,
+      "median_latest_bill": 10554.0,
+      "median_avg_bill": 12205.8333,
+      "median_latest_payment": 3000.0,
+      "median_avg_payment": 3416.6667,
+      "default_rate": 5.6911
+    },
+    {
+      "dimension": "education",
+      "group": "大學",
+      "count": 14030,
+      "median_credit_limit": 110000.0,
+      "median_latest_bill": 27224.0,
+      "median_avg_bill": 25011.5833,
+      "median_latest_payment": 2027.5,
+      "median_avg_payment": 2233.3333,
+      "default_rate": 23.7349
+    },
+    {
+      "dimension": "education",
+      "group": "未分類",
+      "count": 345,
+      "median_credit_limit": 150000.0,
+      "median_latest_bill": 44749.0,
+      "median_avg_bill": 33090.0,
+      "median_latest_payment": 3000.0,
+      "median_avg_payment": 3363.0,
+      "default_rate": 7.5362
+    },
+    {
+      "dimension": "education",
+      "group": "研究所",
+      "count": 10585,
+      "median_credit_limit": 200000.0,
+      "median_latest_bill": 14202.0,
+      "median_avg_bill": 15179.6667,
+      "median_latest_payment": 2500.0,
+      "median_avg_payment": 2988.1667,
+      "default_rate": 19.2348
+    },
+    {
+      "dimension": "education",
+      "group": "高中",
+      "count": 4917,
+      "median_credit_limit": 80000.0,
+      "median_latest_bill": 25554.0,
+      "median_avg_bill": 22630.1667,
+      "median_latest_payment": 2000.0,
+      "median_avg_payment": 1933.3333,
+      "default_rate": 25.1576
+    },
+    {
+      "dimension": "marriage",
+      "group": "其他",
+      "count": 323,
+      "median_credit_limit": 60000.0,
+      "median_latest_bill": 23496.0,
+      "median_avg_bill": 19573.8333,
+      "median_latest_payment": 1900.0,
+      "median_avg_payment": 1666.6667,
+      "default_rate": 26.0062
+    },
+    {
+      "dimension": "marriage",
+      "group": "已婚",
+      "count": 13659,
+      "median_credit_limit": 160000.0,
+      "median_latest_bill": 22357.0,
+      "median_avg_bill": 21074.6667,
+      "median_latest_payment": 2157.0,
+      "median_avg_payment": 2428.0,
+      "default_rate": 23.4717
+    },
+    {
+      "dimension": "marriage",
+      "group": "未分類",
+      "count": 54,
+      "median_credit_limit": 115000.0,
+      "median_latest_bill": 6357.0,
+      "median_avg_bill": 12316.5833,
+      "median_latest_payment": 1786.5,
+      "median_avg_payment": 1284.25,
+      "default_rate": 9.2593
+    },
+    {
+      "dimension": "marriage",
+      "group": "未婚",
+      "count": 15964,
+      "median_credit_limit": 130000.0,
+      "median_latest_bill": 22435.5,
+      "median_avg_bill": 21122.8333,
+      "median_latest_payment": 2100.0,
+      "median_avg_payment": 2394.0,
+      "default_rate": 20.9283
+    }
+  ],
+  "correlations": [
+    {
+      "x": "年齡",
+      "y": "信用額度",
+      "rho": 0.1865
+    },
+    {
+      "x": "年齡",
+      "y": "最近一期帳單",
+      "rho": 0.001
+    },
+    {
+      "x": "年齡",
+      "y": "近六期平均帳單",
+      "rho": 0.0031
+    },
+    {
+      "x": "年齡",
+      "y": "最近一期還款",
+      "rho": 0.0336
+    },
+    {
+      "x": "年齡",
+      "y": "近六期平均還款",
+      "rho": 0.0427
+    },
+    {
+      "x": "年齡",
+      "y": "近六期延遲次數",
+      "rho": -0.0336
+    },
+    {
+      "x": "年齡",
+      "y": "下一期違約",
+      "rho": 0.0051
+    },
+    {
+      "x": "信用額度",
+      "y": "最近一期帳單",
+      "rho": 0.0544
+    },
+    {
+      "x": "信用額度",
+      "y": "近六期平均帳單",
+      "rho": 0.0919
+    },
+    {
+      "x": "信用額度",
+      "y": "最近一期還款",
+      "rho": 0.2724
+    },
+    {
+      "x": "信用額度",
+      "y": "近六期平均還款",
+      "rho": 0.4018
+    },
+    {
+      "x": "信用額度",
+      "y": "近六期延遲次數",
+      "rho": -0.2581
+    },
+    {
+      "x": "信用額度",
+      "y": "下一期違約",
+      "rho": -0.1696
+    },
+    {
+      "x": "最近一期帳單",
+      "y": "近六期平均帳單",
+      "rho": 0.9232
+    },
+    {
+      "x": "最近一期帳單",
+      "y": "最近一期還款",
+      "rho": 0.5023
+    },
+    {
+      "x": "最近一期帳單",
+      "y": "近六期平均還款",
+      "rho": 0.4517
+    },
+    {
+      "x": "最近一期帳單",
+      "y": "近六期延遲次數",
+      "rho": -0.0578
+    },
+    {
+      "x": "最近一期帳單",
+      "y": "下一期違約",
+      "rho": -0.0253
+    },
+    {
+      "x": "近六期平均帳單",
+      "y": "最近一期還款",
+      "rho": 0.5711
+    },
+    {
+      "x": "近六期平均帳單",
+      "y": "近六期平均還款",
+      "rho": 0.5973
+    },
+    {
+      "x": "近六期平均帳單",
+      "y": "近六期延遲次數",
+      "rho": -0.0187
+    },
+    {
+      "x": "近六期平均帳單",
+      "y": "下一期違約",
+      "rho": -0.0268
+    },
+    {
+      "x": "最近一期還款",
+      "y": "近六期平均還款",
+      "rho": 0.6748
+    },
+    {
+      "x": "最近一期還款",
+      "y": "近六期延遲次數",
+      "rho": -0.2626
+    },
+    {
+      "x": "最近一期還款",
+      "y": "下一期違約",
+      "rho": -0.1605
+    },
+    {
+      "x": "近六期平均還款",
+      "y": "近六期延遲次數",
+      "rho": -0.2345
+    },
+    {
+      "x": "近六期平均還款",
+      "y": "下一期違約",
+      "rho": -0.1741
+    },
+    {
+      "x": "近六期延遲次數",
+      "y": "下一期違約",
+      "rho": 0.3877
+    }
+  ],
+  "notes": [
+    "帳單及還款金額為資料中的歷史金額欄位；「近六期平均」是六個月份的簡單平均。",
+    "信用額度、帳單、還款使用中位數呈現典型客戶，較不易被極少數大額數值拉高。",
+    "分組差異及 Spearman 相關只代表這批歷史資料中的一起變化，不表示因果關係。",
+    "學歷代碼 0、5、6 及婚姻代碼 0 合併為未分類。"
+  ]
+}

@@ -60,9 +60,14 @@ def setup_chinese_font():
     font_candidates = [
         "Microsoft JhengHei",
         "Microsoft YaHei",
+        "PingFang TC",
         "Noto Sans CJK TC",
-        "Noto Sans CJK JP",
+        "Source Han Sans TC",
+        "WenQuanYi Zen Hei",
         "SimHei",
+        "Arial Unicode MS",
+        "Yu Gothic UI",
+        "Meiryo UI",
     ]
 
     available_fonts = {
@@ -70,23 +75,30 @@ def setup_chinese_font():
         for font in fm.fontManager.ttflist
     }
 
-    for font_name in font_candidates:
+    matched = [
+        font_name
+        for font_name in font_candidates
+        if font_name in available_fonts
+    ]
 
-        if font_name in available_fonts:
+    if matched:
+        plt.rcParams["font.family"] = "sans-serif"
+        plt.rcParams["font.sans-serif"] = matched + [
+            "DejaVu Sans",
+            "Arial",
+        ]
+        plt.rcParams["axes.unicode_minus"] = False
+        print(f"✓ Matplotlib 中文字型：{matched[0]}")
+        return
 
-            plt.rcParams["font.sans-serif"] = [
-                font_name
-            ]
-
-            plt.rcParams["axes.unicode_minus"] = False
-
-            print(
-                f"✓ Matplotlib 中文字型：{font_name}"
-            )
-
-            return
-
+    plt.rcParams["font.family"] = "sans-serif"
+    plt.rcParams["font.sans-serif"] = [
+        "DejaVu Sans",
+        "Arial",
+    ]
     plt.rcParams["axes.unicode_minus"] = False
+    print("⚠ 找不到指定中文字型，將使用預設 sans-serif 字型，中文可能仍需安裝支援字型")
+
 # ============================================================
 # 欄位名稱
 # ============================================================
@@ -707,12 +719,12 @@ def main():
     )
 
     pay_labels = {
-        "PAY_6": "前6期付款狀態",
-        "PAY_5": "前5期付款狀態",
-        "PAY_4": "前4期付款狀態",
-        "PAY_3": "前3期付款狀態",
-        "PAY_2": "前2期付款狀態",
-        "PAY_0": "最近一期付款狀態",
+        "PAY_6": "Repayment status: 6 months ago",
+        "PAY_5": "Repayment status: 5 months ago",
+        "PAY_4": "Repayment status: 4 months ago",
+        "PAY_3": "Repayment status: 3 months ago",
+        "PAY_2": "Repayment status: 2 months ago",
+        "PAY_0": "Most recent repayment status",
     }
 
     importance_plot["Feature"] = (
@@ -720,56 +732,82 @@ def main():
         .replace(pay_labels)
     )
 
-    plt.figure(
-        figsize=(10, 7)
+    feature_labels = {
+        "信用額度": "Credit limit",
+        "性別": "Sex",
+        "教育程度": "Education",
+        "婚姻狀況": "Marital status",
+        "年齡": "Age",
+        "信用額度使用率": "Credit utilization",
+        "六個月還款帳單比": "6-month payment-to-bill ratio",
+        "PAY平均延遲": "Average repayment delay",
+        "PAY最大延遲": "Maximum repayment delay",
+        "PAY延遲次數": "Number of delayed payments",
+        "PAY嚴重延遲次數": "Number of severe delays",
+        "最近帳單平均": "Recent average bill",
+        "最近還款平均": "Recent average payment",
+        "帳單變化量": "Bill amount change",
+        "還款變化量": "Payment amount change",
+        "帳單變化率": "Bill amount change rate",
+        "還款變化率": "Payment amount change rate",
+        "帳單波動": "Bill amount variation",
+        "還款波動": "Payment amount variation",
+        "BILL_AMT1": "Most recent bill",
+        "BILL_AMT2": "Bill: 2 months ago",
+        "BILL_AMT3": "Bill: 3 months ago",
+        "BILL_AMT4": "Bill: 4 months ago",
+        "BILL_AMT5": "Bill: 5 months ago",
+        "BILL_AMT6": "Bill: 6 months ago",
+        "PAY_AMT1": "Most recent payment",
+        "PAY_AMT2": "Payment: 2 months ago",
+        "PAY_AMT3": "Payment: 3 months ago",
+        "PAY_AMT4": "Payment: 4 months ago",
+        "PAY_AMT5": "Payment: 5 months ago",
+        "PAY_AMT6": "Payment: 6 months ago",
+    }
+    importance_plot["Feature"] = (
+        importance_plot["Feature"].replace(feature_labels)
     )
 
-    bars = plt.barh(
+    fig, ax = plt.subplots(figsize=(12, 8))
+    bars = ax.barh(
         importance_plot["Feature"],
         importance_plot["Importance"],
     )
 
-    plt.xlabel(
-        "Feature Importance"
-    )
-
-    plt.ylabel(
-        "特徵"
-    )
-
-    plt.title(
-        "XGBoost Feature Importance"
-    )
+    ax.set_xlabel("Feature importance")
+    ax.set_ylabel("Feature")
+    ax.set_title("XGBoost - Top 15 Feature Importance")
+    ax.tick_params(axis="y", labelsize=9)
 
     for bar, value in zip(
         bars,
         importance_plot["Importance"],
     ):
 
-        plt.text(
+        ax.text(
             value,
             bar.get_y()
             + bar.get_height() / 2,
-            f"{value:.4f}",
+            f" {value:.4f}",
             va="center",
             ha="left",
+            fontsize=8,
         )
 
-    plt.grid(
+    ax.grid(
         axis="x",
         alpha=0.25,
     )
 
-    plt.tight_layout()
-
-    plt.savefig(
+    fig.tight_layout()
+    fig.savefig(
         OUTPUT_DIR
         / "feature_importance.png",
         dpi=180,
         bbox_inches="tight",
     )
-
-    plt.close()
+    plt.close(fig)
 
     # ========================================================
     # Confusion Matrix
@@ -780,24 +818,14 @@ def main():
         y_test_pred,
     )
 
-    fig, ax = plt.subplots(
-        figsize=(6, 5)
-    )
-
-    image = ax.imshow(
-        cm,
-        interpolation="nearest",
-    )
-
-    ax.set_title(
-        "XGBoost Confusion Matrix"
-    )
-    ax.set_xlabel("預測結果")
-    ax.set_ylabel("實際結果")
-    ax.set_xticks([0, 1])
-    ax.set_yticks([0, 1])
-    ax.set_xticklabels(["未違約", "違約"])
-    ax.set_yticklabels(["未違約", "違約"])
+    fig, ax = plt.subplots(figsize=(7, 6))
+    image = ax.imshow(cm, interpolation="nearest", cmap="Blues")
+    ax.set_title("XGBoost Confusion Matrix")
+    ax.set_xlabel("Predicted")
+    ax.set_ylabel("Actual")
+    ax.set_xticks([0, 1], labels=["No default", "Default"])
+    ax.set_yticks([0, 1], labels=["No default", "Default"])
+    ax.tick_params(axis="x", labelrotation=0)
 
     for i in range(2):
         for j in range(2):
@@ -807,18 +835,20 @@ def main():
                 f"{cm[i, j]:,}",
                 ha="center",
                 va="center",
-                fontsize=13,
+                fontsize=12,
                 fontweight="bold",
+                color="white" if cm[i, j] > cm.max() / 2 else "black",
             )
 
+    ax.set_aspect("equal")
     fig.colorbar(image, ax=ax)
-    plt.tight_layout()
-    plt.savefig(
+    fig.tight_layout()
+    fig.savefig(
         OUTPUT_DIR / "confusion_matrix.png",
-        dpi=180,
+        dpi=220,
         bbox_inches="tight",
     )
-    plt.close()
+    plt.close(fig)
 
     # ========================================================
     # ROC Curve

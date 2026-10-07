@@ -4,6 +4,8 @@
 
 > 本專案為研究與教學用途，不構成個人信用評分或授信建議。
 
+[查看完整分析網站](https://little-guang.github.io/credit_card/index.html)
+
 ## 資料集
 
 - 來源：[UCI Machine Learning Repository — Default of Credit Card Clients](https://archive.ics.uci.edu/dataset/350/default+of+credit+card+clients)
@@ -23,16 +25,20 @@
 .
 ├── convert.py                 # 驗證 Excel 欄位並清理為 CSV
 ├── explore_data.py            # 描述統計、類別計數與特徵分布圖
+├── analyze_segments.py        # 產生年齡、性別、學歷等分組分析資料
 ├── train_logistic.py          # Logistic Regression 訓練與評估
 ├── train_decision_tree.py     # Decision Tree 訓練與評估
 ├── train_xgboost.py           # XGBoost 訓練與評估
 ├── run_all_models.py          # 執行三個模型、比較結果並更新網站資料
+├── index.html                 # 導向互動分析網站的入口
+├── analyze_segments.py        # 產生年齡、性別、學歷等分組分析資料
 ├── data/
 │   ├── raw/                   # 原始 UCI Excel 資料
 │   └── clean/                 # convert.py 產生的標準化 CSV
 ├── docs/
 │   ├── index.html             # GitHub Pages 報告網站
 │   ├── model-comparison.json  # 由 run_all_models.py 更新的網站資料
+│   ├── segment-analysis.json  # 由 analyze_segments.py 更新的分組分析資料
 │   └── assets/                # 報告網站顯示的圖表
 ├── output/                    # 模型與比較報告產物（執行時建立，不納入 Git）
 ├── pyproject.toml
@@ -89,11 +95,19 @@ uv run python train_xgboost.py
 
 單獨執行不會更新三模型比較表或網站 JSON。
 
-### 4. 開啟報告網站
+### 4. 更新族群分析
 
-先依序執行 `convert.py`、`explore_data.py` 及 `run_all_models.py`，更新清理資料、探索分布圖、模型圖表和 `docs/model-comparison.json`；再於 GitHub 專案設定 **Settings → Pages → Deploy from a branch**，選擇主要分支及 `/docs` 資料夾。GitHub Pages 部署完成後，即可用 `https://<帳號>.github.io/<專案名稱>/` 分享含圖表的報告。
+```bash
+uv run python analyze_segments.py
+```
 
-網站是純 HTML/CSS/JavaScript，不需要額外套件或建置步驟；更新報告時，請一併提交 `docs/model-comparison.json` 與 `docs/assets/` 中新產生或更新的圖表。
+依年齡、性別、學歷及婚姻狀況彙整信用額度、帳單、還款與違約比例，輸出至 `docs/segment-analysis.json`，供網站互動圖表使用。資料沒有逐筆刷卡消費明細，因此只能分析帳單及還款金額。
+
+### 5. 開啟報告網站
+
+先依序執行 `convert.py`、`explore_data.py`、`run_all_models.py` 及 `analyze_segments.py`，更新清理資料、探索分布圖、模型圖表和網站分析資料；再於 GitHub 專案設定 **Settings → Pages → Deploy from a branch**，選擇主要分支及 repository root 或 `/docs` 資料夾。GitHub Pages 部署完成後，可透過上方「查看完整分析網站」互動檢視模型比較與分組分析。
+
+網站是純 HTML/CSS/JavaScript，不需要額外套件或建置步驟；更新報告時，請一併提交 `docs/model-comparison.json`、`docs/segment-analysis.json` 與 `docs/assets/` 中新產生或更新的圖表。
 
 ## 評估方式
 

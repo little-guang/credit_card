@@ -64,9 +64,14 @@ def setup_chinese_font():
     font_candidates = [
         "Microsoft JhengHei",
         "Microsoft YaHei",
+        "PingFang TC",
         "Noto Sans CJK TC",
-        "Noto Sans CJK JP",
+        "Source Han Sans TC",
+        "WenQuanYi Zen Hei",
         "SimHei",
+        "Arial Unicode MS",
+        "Yu Gothic UI",
+        "Meiryo UI",
     ]
 
     available_fonts = {
@@ -74,27 +79,29 @@ def setup_chinese_font():
         for font in fm.fontManager.ttflist
     }
 
-    for font_name in font_candidates:
+    matched = [
+        font_name
+        for font_name in font_candidates
+        if font_name in available_fonts
+    ]
 
-        if font_name in available_fonts:
+    if matched:
+        plt.rcParams["font.family"] = "sans-serif"
+        plt.rcParams["font.sans-serif"] = matched + [
+            "DejaVu Sans",
+            "Arial",
+        ]
+        plt.rcParams["axes.unicode_minus"] = False
+        print(f"✓ Matplotlib 中文字型：{matched[0]}")
+        return
 
-            plt.rcParams["font.sans-serif"] = [
-                font_name
-            ]
-
-            plt.rcParams["axes.unicode_minus"] = False
-
-            print(
-                f"✓ Matplotlib 中文字型：{font_name}"
-            )
-
-            return
-
+    plt.rcParams["font.family"] = "sans-serif"
+    plt.rcParams["font.sans-serif"] = [
+        "DejaVu Sans",
+        "Arial",
+    ]
     plt.rcParams["axes.unicode_minus"] = False
-
-    print(
-        "⚠ 找不到指定中文字型"
-    )
+    print("⚠ 找不到指定中文字型，將使用預設 sans-serif 字型，中文可能仍需安裝支援字型")
 
 # ============================================================
 # 欄位名稱

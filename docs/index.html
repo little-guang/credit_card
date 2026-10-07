@@ -98,6 +98,20 @@
     .mini-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px; }
     .mini-metrics span { display: block; color: var(--muted); font-size: .76rem; }
     .mini-metrics strong { font-size: .96rem; }
+    .explain-grid, .model-explain-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 18px; }
+    .info-box { padding: 16px 18px; border: 1px solid var(--line); border-radius: 14px; background: #f8fbff; }
+    .info-box h3 { margin: 0 0 8px; font-size: 1rem; }
+    .info-box p { margin: 0; color: #405469; font-size: .9rem; }
+    .analysis-controls { display: flex; flex-wrap: wrap; gap: 14px; margin: 18px 0; }
+    .analysis-controls label { display: grid; gap: 5px; color: var(--muted); font-size: .84rem; font-weight: 700; }
+    .analysis-controls select { min-width: 180px; padding: 9px 12px; border: 1px solid var(--line); border-radius: 9px; color: var(--ink); background: white; font: inherit; }
+    .analysis-chart { overflow-x: auto; }
+    .analysis-chart svg { display: block; width: 100%; min-width: 580px; height: auto; }
+    .analysis-table { width: 100%; border-collapse: collapse; white-space: nowrap; font-size: .84rem; }
+    .analysis-table-wrap { overflow-x: auto; margin-top: 16px; }
+    .analysis-table th, .analysis-table td { padding: 9px 10px; border-bottom: 1px solid var(--line); text-align: right; }
+    .analysis-table th:first-child, .analysis-table td:first-child { text-align: left; }
+    .insight-list { display: grid; gap: 8px; margin: 14px 0 0; padding-left: 20px; color: #405469; font-size: .9rem; }
     .chart-row { display: grid; grid-template-columns: 110px 1fr 48px; align-items: center; gap: 10px; margin: 16px 0; font-size: .84rem; }
     .track { height: 10px; overflow: hidden; border-radius: 999px; background: #edf2f8; }
     .bar { height: 100%; min-width: 2px; border-radius: inherit; background: var(--blue); }
@@ -127,6 +141,7 @@
     <nav class="hero-links" aria-label="報告導覽">
       <a href="#ranking">模型排名</a>
       <a href="#metrics">指標比較</a>
+      <a href="#segments">族群分析</a>
       <a href="#charts">結果圖表</a>
       <a href="https://archive.ics.uci.edu/dataset/350/default+of+credit+card+clients" target="_blank" rel="noreferrer">UCI 資料來源 ↗</a>
     </nav>
@@ -162,6 +177,112 @@
         </a>
         <figcaption>${escapeHtml(chart.title)}</figcaption>
       </figure>`;
+
+    let segmentReport = null;
+    let segmentError = null;
+    const segmentNumber = (value, digits = 0) => value == null
+      ? "—"
+      : Number(value).toLocaleString("zh-TW", { maximumFractionDigits: digits, minimumFractionDigits: digits });
+    const renderSegmentAnalysis = () => {
+      const container = document.querySelector("#segment-analysis-content");
+      if (!container) return;
+      if (segmentError) {
+        container.innerHTML = `<div class="error">無法載入族群分析資料：${escapeHtml(segmentError)}。請執行 <code>uv run python analyze_segments.py</code>。</div>`;
+        return;
+      }
+      if (!segmentReport) return;
+
+      const dimensionSelect = container.querySelector("#segment-dimension");
+      const measureSelect = container.querySelector("#segment-measure");
+      const draw = () => {
+        const dimension = dimensionSelect.value;
+        const measure = measureSelect.value;
+        const order = {
+          age_group: ["21–29歲", "30–39歲", "40–49歲", "50–59歲", "60歲以上"],
+          sex: ["女性", "男性"],
+          education: ["研究所", "大學", "高中", "其他", "未分類"],
+          marriage: ["已婚", "未婚", "其他", "未分類"]
+        };
+        const groups = segmentReport.groups
+          .filter((item) => item.dimension === dimension)
+          .sort((left, right) => order[dimension].indexOf(left.group) - order[dimension].indexOf(right.group));
+        const maxValue = Math.max(1, ...groups.map((item) => Number(item[measure] || 0)));
+        const chartHeight = Math.max(150, groups.length * 42 + 28);
+        const chartRows = groups.map((item, index) => {
+          const y = index * 42 + 12;
+          const value = Number(item[measure] || 0);
+          const barWidth = Math.max(2, value / maxValue * 500);
+          return `
+            <g>
+              <text x="12" y="${y + 19}" fill="#405469" font-size="13">${escapeHtml(item.group)}</text>
+              <rect x="170" y="${y}" width="${barWidth}" height="26" rx="6" fill="${colors[index % colors.length]}">
+                <title>${escapeHtml(item.group)}：${segmentNumber(value, measure === "default_rate" ? 1 : 0)}</title>
+              </rect>
+              <text x="${Math.min(805, 180 + barWidth)}" y="${y + 19}" fill="#14243a" font-size="12">${segmentNumber(value, measure === "default_rate" ? 1 : 0)}${measure === "default_rate" ? "%" : ""}</text>
+            </g>`;
+        }).join("");
+        container.querySelector("#segment-chart-title").textContent =
+          `${segmentReport.dimensions[dimension]}：${segmentReport.measures[measure]}`;
+        container.querySelector("#segment-chart").innerHTML =
+          `<svg class="segment-svg" viewBox="0 0 880 ${chartHeight}" role="img" aria-label="${escapeHtml(segmentReport.dimensions[dimension])}分組${escapeHtml(segmentReport.measures[measure])}長條圖">${chartRows}</svg>`;
+        container.querySelector("#segment-table").innerHTML = groups.map((item) => `
+          <tr>
+            <td>${escapeHtml(item.group)}</td>
+            <td>${segmentNumber(item.count)}</td>
+            <td>${segmentNumber(item[measure], measure === "default_rate" ? 1 : 0)}${measure === "default_rate" ? "%" : ""}</td>
+            <td>${segmentNumber(item.default_rate, 1)}%</td>
+            <td>${segmentNumber(item.median_credit_limit)}</td>
+            <td>${segmentNumber(item.median_avg_bill)}</td>
+            <td>${segmentNumber(item.median_avg_payment)}</td>
+          </tr>`).join("");
+      };
+      if (!container.dataset.bound) {
+        dimensionSelect.addEventListener("change", draw);
+        measureSelect.addEventListener("change", draw);
+        container.dataset.bound = "true";
+      }
+      draw();
+
+      const byDimension = (dimension) => segmentReport.groups.filter((item) => item.dimension === dimension);
+      const ages = byDimension("age_group");
+      const sexes = byDimension("sex");
+      const educations = byDimension("education");
+      const ageMin = ages.reduce((a, b) => a.default_rate < b.default_rate ? a : b);
+      const ageMax = ages.reduce((a, b) => a.default_rate > b.default_rate ? a : b);
+      const male = sexes.find((item) => item.group === "男性");
+      const female = sexes.find((item) => item.group === "女性");
+      const graduate = educations.find((item) => item.group === "研究所");
+      const highSchool = educations.find((item) => item.group === "高中");
+      const displayRate = (item) => `${item.group} ${segmentNumber(item.default_rate, 1)}%`;
+      container.querySelector("#segment-insights").innerHTML = `
+        <li>年齡組別的違約比例，從 ${displayRate(ageMin)} 到 ${displayRate(ageMax)}；較年長組樣本較少，請一併看人數。</li>
+        <li>資料中男性違約比例為 ${segmentNumber(male.default_rate, 1)}%，女性為 ${segmentNumber(female.default_rate, 1)}%。</li>
+        <li>研究所學歷組違約比例為 ${segmentNumber(graduate.default_rate, 1)}%，高中組為 ${segmentNumber(highSchool.default_rate, 1)}%；這只表示本資料中的組別差異。</li>`;
+
+      const correlations = [...segmentReport.correlations]
+        .filter((item) => item.rho != null && (
+          item.x === "年齡" || item.y === "年齡"
+          || (item.x === "近六期延遲次數" && item.y === "下一期違約")
+        ))
+        .sort((left, right) => Math.abs(right.rho) - Math.abs(left.rho))
+        .slice(0, 8);
+      container.querySelector("#correlation-rows").innerHTML = correlations.map((item) => `
+        <tr><td>${escapeHtml(item.x)}</td><td>${escapeHtml(item.y)}</td><td>${segmentNumber(item.rho, 3)}</td></tr>
+      `).join("");
+    };
+    fetch("./segment-analysis.json")
+      .then((response) => {
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        return response.json();
+      })
+      .then((analysis) => {
+        segmentReport = analysis;
+        renderSegmentAnalysis();
+      })
+      .catch((error) => {
+        segmentError = error.message;
+        renderSegmentAnalysis();
+      });
 
     fetch("./model-comparison.json")
       .then((response) => {
@@ -213,6 +334,118 @@
             <div class="note">
               引用建議：Yeh, I.-C., &amp; Lien, C.-H. (2009). <em>The comparisons of data mining techniques for the predictive accuracy of probability of default of credit card clients</em>. Expert Systems with Applications.<br>
               本分析僅供研究與教學用途，不構成個人信用評分、授信建議或商業決策；結果不能直接推論未來授信成效，仍需依實際規則、成本與公平性檢查進行驗證。
+            </div>
+          </section>
+
+          <section class="panel" style="margin-bottom:18px">
+            <h2>資料意義與指標解讀</h2>
+            <p class="sub">這份資料大約有 30,000 筆，違約的人大約是 ${format(rate * 100, 1)}%。也就是說，約 1/5 的人下一個月會違約。因為違約的人比較少，單看「準不準」不夠，還要看模型能不能真的抓出高風險客戶，所以這裡特別看 Precision、Recall、PR-AUC 與 F1。</p>
+            <div class="explain-grid">
+              <div class="info-box">
+                <h3>PR-AUC</h3>
+                <p>這個值看的是：模型抓到違約客戶的能力有多強。它很適合用在「違約人數少」的情況，數字越高，代表模型不容易漏抓真正有風險的人。</p>
+              </div>
+              <div class="info-box">
+                <h3>ROC-AUC</h3>
+                <p>這個值看的是：模型能不能把「會違約」和「不會違約」分開。數字大約在 0.5 到 1 之間，越接近 1 就表示區分能力越好。</p>
+              </div>
+              <div class="info-box">
+                <h3>Precision</h3>
+                <p>意思是：模型判定為「違約」時，真的違約的比例。高 Precision 表示它不會太容易誤判正常客戶。</p>
+              </div>
+              <div class="info-box">
+                <h3>Recall</h3>
+                <p>意思是：真的違約的人中，有多少被模型抓出來。對風險預測來說，這很重要，因為最怕漏掉高風險客戶。</p>
+              </div>
+              <div class="info-box">
+                <h3>F1</h3>
+                <p>這是 Precision 和 Recall 的綜合分數。它像是把「不誤判」和「不漏抓」兩個重點一起衡量，特別適合不平衡資料。</p>
+              </div>
+              <div class="info-box">
+                <h3>綜合分數</h3>
+                <p>這裡用的是：Test PR-AUC × 0.35 + Test Recall × 0.25 + Test F1 × 0.20 + Test ROC-AUC × 0.20。簡單說，就是看模型是不是既能抓出高風險客戶，又能整體分辨得比較清楚。</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel" style="margin-bottom:18px">
+            <h2>預測內容與資料切分</h2>
+            <div class="model-explain-grid">
+              <div class="info-box">
+                <h3>預測目標</h3>
+                <p>這個專案要預測的是：客戶在下一個月會不會違約。也就是欄位 <code>default_payment_next_month</code>：0 表示沒違約，1 表示違約。模型會根據過去的信用額度、還款狀態、帳單金額、年齡和婚姻狀況等資料，猜測這個人是否屬於高風險群。</p>
+              </div>
+              <div class="info-box">
+                <h3>資料切分方式</h3>
+                <p>我們先把資料分成 80% 訓練、20% 測試，並且使用 <code>stratify=y</code> 保持違約與未違約比例大致相同。接著在訓練資料裡再做 5 折交叉驗證，這樣能更可靠地比較模型，不會因為某一次切分剛好偏差而誤判好壞。</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel" style="margin-bottom:18px">
+            <h2>三個模型的特性與意義</h2>
+            <div class="model-explain-grid">
+              <div class="info-box">
+                <h3>Logistic Regression</h3>
+                <p>它很像是做「加權判斷」。它會看每個特徵對違約機率有多大影響，適合當基準模型。好處是容易理解，缺點是如果資料關係比較複雜，它可能做得不如更強的模型。</p>
+              </div>
+              <div class="info-box">
+                <h3>Decision Tree</h3>
+                <p>它會像一棵判斷樹一樣，一步一步把資料切開。它比較能抓到非線性規則，也方便看哪些特徵最重要。不過如果樹太深，可能會過度擬合，表現可能在新資料上變差。</p>
+              </div>
+              <div class="info-box">
+                <h3>XGBoost</h3>
+                <p>它是很多樹一起合作的模型，通常很擅長處理複雜資料，表現常常比較強。它很適合這種有很多特徵、關係不簡單的風險預測問題，但模型比較複雜，調參數也比較重要。</p>
+              </div>
+              <div class="info-box">
+                <h3>數據代表的意義</h3>
+                <p>這些數字表示的是：在過去資料上，哪個模型比較會辨識出高風險客戶。只要 Recall 和 PR-AUC 比較高，代表它比較能抓到真正會違約的人；如果 ROC-AUC 和 F1 也高，就表示整體表現比較穩定。這些結果不是未來保證，而是一個歷史資料上的比較。</p>
+              </div>
+            </div>
+          </section>
+
+          <section id="segments" class="panel" style="margin-bottom:18px">
+            <h2>不同族群的消費、帳單與還款狀況</h2>
+            <p class="sub">從 30,000 筆歷史資料，切換年齡、性別、學歷或婚姻狀況，比較信用額度、帳單、還款和下一期違約比例。金額以中位數呈現，較不容易被少數特別大的金額影響。</p>
+            <div id="segment-analysis-content">
+              <p class="sub">正在載入分組分析…</p>
+              <div class="analysis-controls">
+                <label>依哪個條件分組
+                  <select id="segment-dimension">
+                    <option value="age_group">年齡</option><option value="sex">性別</option>
+                    <option value="education">學歷</option><option value="marriage">婚姻狀況</option>
+                  </select>
+                </label>
+                <label>比較哪個數值
+                  <select id="segment-measure">
+                    <option value="median_credit_limit">信用額度中位數</option>
+                    <option value="median_latest_bill">最近一期帳單中位數</option>
+                    <option value="median_avg_bill">近六期平均帳單中位數</option>
+                    <option value="median_latest_payment">最近一期還款中位數</option>
+                    <option value="median_avg_payment">近六期平均還款中位數</option>
+                    <option value="default_rate">下一期違約比例</option>
+                  </select>
+                </label>
+              </div>
+              <h3 id="segment-chart-title"></h3>
+              <div id="segment-chart" class="analysis-chart"></div>
+              <div class="analysis-table-wrap">
+                <table class="analysis-table">
+                  <thead><tr><th>族群</th><th>人數</th><th>目前選擇的數值</th><th>下一期違約比例</th><th>信用額度中位數</th><th>近六期平均帳單中位數</th><th>近六期平均還款中位數</th></tr></thead>
+                  <tbody id="segment-table"></tbody>
+                </table>
+              </div>
+              <h3 style="margin-top:22px">從這批資料觀察到的差異</h3>
+              <ul id="segment-insights" class="insight-list"></ul>
+              <h3 style="margin-top:22px">金額及還款狀況的相關程度</h3>
+              <p class="sub">Spearman 相關係數介於 -1 到 1；正數代表兩者通常一起增加，負數代表一項增加時另一項通常減少，接近 0 表示沒有明顯的單調關係。相關不代表因果。</p>
+              <div class="analysis-table-wrap">
+                <table class="analysis-table">
+                  <thead><tr><th>項目一</th><th>項目二</th><th>相關係數</th></tr></thead>
+                  <tbody id="correlation-rows"></tbody>
+                </table>
+              </div>
+              <div class="note">資料沒有逐筆消費明細或商店/品項消費金額，因此這裡分析的是每月帳單金額、還款金額和信用額度，不是實際刷卡消費明細。PAY 還款狀態中的正值代表延遲；「近六期延遲次數」是六期中 PAY 值大於 0 的期數。學歷代碼 0、5、6 及婚姻代碼 0 合併為「未分類」；未分類/其他部分組別樣本較少，結果不宜直接比較下結論。分析呈現的是同時出現的關聯，不能解讀成某種年齡、性別或學歷造成違約。</div>
             </div>
           </section>
 
@@ -276,6 +509,7 @@
             <h2>資料與限制</h2>
             <p class="sub">資料取自 UCI Default of Credit Card Clients。這是單一歷史資料集的隨機分層切分結果，不能直接代表未來期間或實際授信成效；正式決策仍需時間外驗證、成本敏感的閾值評估與公平性檢查。</p>
           </section>`;
+        renderSegmentAnalysis();
       })
       .catch((error) => {
         document.querySelector("#report").innerHTML = `
