@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="以 Logistic Regression、Decision Tree 與 XGBoost 比較信用卡違約風險預測模型。">
+  <title>信用卡違約風險｜模型比較報告</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #14243a;
+      --muted: #61738a;
+      --line: #e1e8f0;
+      --paper: #ffffff;
+      --canvas: #f3f7fb;
+      --blue: #2864dc;
+      --teal: #0d9488;
+      --orange: #e98a35;
+      --shadow: 0 18px 48px rgb(28 50 82 / 8%);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--canvas);
+      color: var(--ink);
+      font-family: Inter, "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+      line-height: 1.65;
+    }
+    a { color: var(--blue); }
+    .hero {
+      padding: 62px max(24px, calc((100% - 1120px) / 2)) 54px;
+      background:
+        radial-gradient(ellipse at 82% 12%, rgb(72 137 236 / 26%), transparent 34%),
+        linear-gradient(125deg, #10233c, #173a62 72%, #205377);
+      color: white;
+    }
+    .eyebrow {
+      color: #9ed8ee;
+      font-size: .8rem;
+      font-weight: 800;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+    h1 {
+      max-width: 780px;
+      margin: 12px 0;
+      font-size: clamp(2.1rem, 5vw, 3.7rem);
+      line-height: 1.16;
+    }
+    .hero p { max-width: 700px; margin: 12px 0 0; color: #d3e1ef; }
+    .hero-links { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+    .hero-links a {
+      display: inline-block;
+      padding: 9px 15px;
+      border: 1px solid rgb(255 255 255 / 30%);
+      border-radius: 999px;
+      color: white;
+      font-size: .9rem;
+      text-decoration: none;
+    }
+    main { width: min(1120px, calc(100% - 40px)); margin: 32px auto 64px; }
+    .stats, .cards, .charts { display: grid; gap: 16px; }
+    .stats { grid-template-columns: repeat(3, 1fr); margin-bottom: 24px; }
+    .cards { grid-template-columns: repeat(3, 1fr); margin: 18px 0 30px; }
+    .charts { grid-template-columns: 1fr 1fr; margin: 18px 0 30px; }
+    .panel, .stat, .model-card {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: var(--paper);
+      box-shadow: var(--shadow);
+    }
+    .stat { padding: 18px 20px; }
+    .stat span { display: block; color: var(--muted); font-size: .88rem; }
+    .stat strong { display: block; margin-top: 3px; font-size: 1.65rem; }
+    .panel { padding: 24px; }
+    .panel h2 { margin: 0 0 6px; font-size: 1.18rem; }
+    .sub { margin: 0; color: var(--muted); font-size: .9rem; }
+    .model-card { position: relative; padding: 20px; overflow: hidden; }
+    .model-card::after {
+      position: absolute;
+      top: 0;
+      right: 0;
+      left: 0;
+      height: 4px;
+      background: var(--accent, var(--blue));
+      content: "";
+    }
+    .rank { color: var(--muted); font-size: .82rem; font-weight: 750; }
+    .model-card h3 { margin: 4px 0 12px; font-size: 1.05rem; }
+    .score { font-size: 2rem; font-weight: 850; letter-spacing: -.04em; }
+    .score-label { color: var(--muted); font-size: .82rem; }
+    .mini-metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px; }
+    .mini-metrics span { display: block; color: var(--muted); font-size: .76rem; }
+    .mini-metrics strong { font-size: .96rem; }
+    .chart-row { display: grid; grid-template-columns: 110px 1fr 48px; align-items: center; gap: 10px; margin: 16px 0; font-size: .84rem; }
+    .track { height: 10px; overflow: hidden; border-radius: 999px; background: #edf2f8; }
+    .bar { height: 100%; min-width: 2px; border-radius: inherit; background: var(--blue); }
+    .chart-row b { text-align: right; font-variant-numeric: tabular-nums; }
+    .table-wrap { overflow-x: auto; margin-top: 16px; }
+    table { width: 100%; border-collapse: collapse; white-space: nowrap; font-size: .88rem; }
+    th, td { padding: 12px 10px; border-bottom: 1px solid var(--line); text-align: right; }
+    th { color: var(--muted); font-size: .78rem; }
+    th:first-child, td:first-child { text-align: left; }
+    tbody tr:last-child td { border-bottom: 0; }
+    .note { margin-top: 18px; padding: 15px 17px; border-radius: 12px; background: #f1f6fc; color: #445a72; font-size: .87rem; }
+    .error { padding: 18px; border: 1px solid #efc9bd; border-radius: 12px; background: #fff5f1; color: #893f2c; }
+    footer { padding: 24px; color: var(--muted); text-align: center; font-size: .84rem; }
+    @media (max-width: 760px) {
+      .hero { padding-top: 44px; }
+      .stats, .cards, .charts { grid-template-columns: 1fr; }
+      .chart-row { grid-template-columns: 92px 1fr 44px; gap: 8px; }
+      .panel { padding: 19px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <div class="eyebrow">Credit Risk · Model Evaluation</div>
+    <h1>信用卡違約風險<br>模型比較報告</h1>
+    <p>比較 Logistic Regression、Decision Tree 與 XGBoost 對「下個月是否違約」的預測表現。透過分層交叉驗證與獨立測試集，呈現模型效能與取捨。</p>
+    <nav class="hero-links" aria-label="報告導覽">
+      <a href="#ranking">模型排名</a>
+      <a href="#metrics">指標比較</a>
+      <a href="https://archive.ics.uci.edu/dataset/350/default+of+credit+card+clients" target="_blank" rel="noreferrer">UCI 資料來源 ↗</a>
+    </nav>
+  </header>
+
+  <main id="report" aria-live="polite">
+    <p>正在讀取本次模型結果…</p>
+  </main>
+  <footer>此頁面為研究與教學用途，不構成個人信用或授信建議。</footer>
+
+  <script>
+    const format = (value, digits = 4) => Number(value).toFixed(digits);
+    const escapeHtml = (value) => String(value).replace(/[&<>"']/g, (character) => ({
+      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+    })[character]);
+    const colors = ["#2864dc", "#0d9488", "#e98a35"];
+    const metricChart = (models, key, title, description) => `
+      <section class="panel">
+        <h2>${title}</h2><p class="sub">${description}</p>
+        ${models.map((model, index) => `
+          <div class="chart-row">
+            <span>${escapeHtml(model.Model)}</span>
+            <div class="track" role="img" aria-label="${escapeHtml(model.Model)} ${title}: ${format(model[key])}">
+              <div class="bar" style="width:${Math.max(0, Math.min(100, Number(model[key]) * 100))}%;background:${colors[index % colors.length]}"></div>
+            </div>
+            <b>${format(model[key])}</b>
+          </div>`).join("")}
+      </section>`;
+
+    fetch("./model-comparison.json")
+      .then((response) => {
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        return response.json();
+      })
+      .then((report) => {
+        const models = report.models;
+        if (!Array.isArray(models) || models.length !== 3) {
+          throw new Error("模型比較資料不完整，請重新執行 run_all_models.py。");
+        }
+        const cards = models.map((model, index) => `
+          <article class="model-card" style="--accent:${colors[index % colors.length]}">
+            <div class="rank">第 ${Number(model.Overall_Rank)} 名</div>
+            <h3>${escapeHtml(model.Model)}</h3>
+            <div class="score">${format(model.Overall_Score)}</div>
+            <div class="score-label">綜合分數</div>
+            <div class="mini-metrics">
+              <div><span>測試 PR-AUC</span><strong>${format(model.Test_PR_AUC)}</strong></div>
+              <div><span>測試 Recall</span><strong>${format(model.Test_Recall)}</strong></div>
+              <div><span>測試 ROC-AUC</span><strong>${format(model.Test_ROC_AUC)}</strong></div>
+              <div><span>測試 F1</span><strong>${format(model.Test_F1)}</strong></div>
+            </div>
+          </article>`).join("");
+        const rows = models.map((model) => `
+          <tr>
+            <td>${escapeHtml(model.Model)}</td>
+            <td>${format(model.CV_PR_AUC)}</td><td>${format(model.Test_PR_AUC)}</td>
+            <td>${format(model.CV_ROC_AUC)}</td><td>${format(model.Test_ROC_AUC)}</td>
+            <td>${format(model.Test_Precision)}</td><td>${format(model.Test_Recall)}</td>
+            <td>${format(model.Test_F1)}</td>
+            <td>${format(model.Overall_Score)}</td><td>${Number(model.Overall_Rank)}</td>
+          </tr>`).join("");
+        const rate = Number(report.dataset.default_rate);
+
+        document.querySelector("#report").innerHTML = `
+          <section class="stats" aria-label="資料概況">
+            <div class="stat"><span>資料筆數</span><strong>${Number(report.dataset.rows).toLocaleString("zh-TW")}</strong></div>
+            <div class="stat"><span>違約筆數</span><strong>${Number(report.dataset.default_count).toLocaleString("zh-TW")}</strong></div>
+            <div class="stat"><span>違約比例</span><strong>${format(rate * 100, 1)}%</strong></div>
+          </section>
+
+          <section id="ranking">
+            <h2>模型排名</h2>
+            <p class="sub">綜合分數採測試 PR-AUC、Recall、F1 與 ROC-AUC 加權計算。</p>
+            <div class="cards">${cards}</div>
+          </section>
+
+          <section id="metrics" class="charts">
+            ${metricChart(models, "Test_PR_AUC", "測試 PR-AUC", "違約類別比例不均衡時，PR-AUC 有助觀察正類預測品質。")}
+            ${metricChart(models, "Test_Recall", "測試 Recall", "違約客戶中被正確找出的比例；Recall 越高，漏判越少。")}
+          </section>
+
+          <section class="panel">
+            <h2>完整指標</h2>
+            <p class="sub">CV 為訓練資料上的 5-fold 分層交叉驗證平均；Test 為保留 20% 測試集。</p>
+            <div class="table-wrap">
+              <table>
+                <thead><tr>
+                  <th>模型</th><th>CV PR-AUC</th><th>Test PR-AUC</th>
+                  <th>CV ROC-AUC</th><th>Test ROC-AUC</th>
+                  <th>Precision</th><th>Recall</th><th>F1</th>
+                  <th>綜合分數</th><th>排名</th>
+                </tr></thead>
+                <tbody>${rows}</tbody>
+              </table>
+            </div>
+            <div class="note">
+              綜合分數 = Test PR-AUC × 0.35 + Test Recall × 0.25 + Test F1 × 0.20 + Test ROC-AUC × 0.20。
+              各模型的 Gap 欄位均為「CV 平均 − Test」，僅供比較泛化差距；分數權重是本專案的分析設定，不是通用標準。
+            </div>
+          </section>
+          <section class="panel" style="margin-top:18px">
+            <h2>資料與限制</h2>
+            <p class="sub">資料取自 UCI Default of Credit Card Clients。這是單一歷史資料集的隨機分層切分結果，不能直接代表未來期間或實際授信成效；正式決策仍需時間外驗證、成本敏感的閾值評估與公平性檢查。</p>
+          </section>`;
+      })
+      .catch((error) => {
+        document.querySelector("#report").innerHTML = `
+          <div class="error">
+            <strong>目前無法載入模型報告。</strong>
+            <p>${escapeHtml(error.message)}</p>
+            <p>在專案根目錄執行 <code>uv run python run_all_models.py</code> 產生報告資料，再重新整理此頁。</p>
+          </div>`;
+      });
+  </script>
+</body>
+</html>

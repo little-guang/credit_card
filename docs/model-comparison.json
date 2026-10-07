@@ -1,0 +1,73 @@
+{
+  "dataset": {
+    "rows": 30000,
+    "default_count": 6636,
+    "non_default_count": 23364,
+    "default_rate": 0.2212
+  },
+  "models": [
+    {
+      "Model": "XGBoost",
+      "CV_PR_AUC": 0.5619858727,
+      "CV_ROC_AUC": 0.7829256845,
+      "Test_PR_AUC": 0.5714205382,
+      "Test_ROC_AUC": 0.7950497583,
+      "Test_Precision": 0.4667792793,
+      "Test_Recall": 0.6247174077,
+      "Test_F1": 0.5343216242,
+      "PR_AUC_Gap": -0.0094346655,
+      "ROC_AUC_Gap": -0.0121240738,
+      "Precision_Gap": 0.0001804155,
+      "Recall_Gap": 0.0072305645,
+      "F1_Gap": 0.0026641146,
+      "Overall_Score": 0.6220508168,
+      "PR_AUC_Rank": 1.0,
+      "ROC_AUC_Rank": 1.0,
+      "Recall_Rank": 2.0,
+      "F1_Rank": 1.0,
+      "Overall_Rank": 1
+    },
+    {
+      "Model": "Decision Tree",
+      "CV_PR_AUC": 0.5222398237,
+      "CV_ROC_AUC": 0.7654518173,
+      "Test_PR_AUC": 0.5369653132,
+      "Test_ROC_AUC": 0.7777214613,
+      "Test_Precision": 0.4631101022,
+      "Test_Recall": 0.6149208742,
+      "Test_F1": 0.5283263192,
+      "PR_AUC_Gap": -0.0147254894,
+      "ROC_AUC_Gap": -0.012269644,
+      "Precision_Gap": -0.014451778,
+      "Recall_Gap": 0.0023341051,
+      "F1_Gap": -0.0092043188,
+      "Overall_Score": 0.6028776343,
+      "PR_AUC_Rank": 2.0,
+      "ROC_AUC_Rank": 2.0,
+      "Recall_Rank": 3.0,
+      "F1_Rank": 2.0,
+      "Overall_Rank": 2
+    },
+    {
+      "Model": "Logistic Regression",
+      "CV_PR_AUC": 0.5086174858,
+      "CV_ROC_AUC": 0.7591277585,
+      "Test_PR_AUC": 0.5030323268,
+      "Test_ROC_AUC": 0.7643089395,
+      "Test_Precision": 0.4455764075,
+      "Test_Recall": 0.6262245667,
+      "Test_F1": 0.5206766917,
+      "PR_AUC_Gap": 0.005585159,
+      "ROC_AUC_Gap": -0.0051811811,
+      "Precision_Gap": 0.0060875471,
+      "Recall_Gap": -0.0035094363,
+      "F1_Gap": 0.0028547982,
+      "Overall_Score": 0.5896145823,
+      "PR_AUC_Rank": 3.0,
+      "ROC_AUC_Rank": 3.0,
+      "Recall_Rank": 1.0,
+      "F1_Rank": 3.0,
+      "Overall_Rank": 3
+    }
+  ]
+}
