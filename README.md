@@ -13,6 +13,10 @@
 
 原始 Excel 檔應放在 `data/raw/default of credit card clients.xls`。資料集包含歷史客戶資料，分析結果不應直接推論為未來授信成效。
 
+必要的使用說明：使用此資料集時，請附上資料來源與引用資訊，並明確說明本分析僅供研究與教學用途，不代表任何實際授信、信用評分或商業決策。建議引用：
+
+> Yeh, I.-C., & Lien, C.-H. (2009). *The comparisons of data mining techniques for the predictive accuracy of probability of default of credit card clients*. Expert Systems with Applications.
+
 ## 專案檔案
 
 ```text
