@@ -1,12 +1,12 @@
 from __future__ import annotations
 
 import json
-import sys
 # ============================================================
 # 匯入套件
 # ============================================================
 
 from pathlib import Path
+import shutil
 import subprocess
 import sys
 
@@ -31,6 +31,12 @@ REPORT_DATA_FILE = (
     BASE_DIR
     / "docs"
     / "model-comparison.json"
+)
+
+REPORT_ASSET_DIR = (
+    BASE_DIR
+    / "docs"
+    / "assets"
 )
 
 DATA_FILE = (
@@ -96,6 +102,7 @@ MODELS = [
 
     {
         "name": "Logistic Regression",
+        "slug": "logistic",
 
         "script":
             BASE_DIR
@@ -106,10 +113,16 @@ MODELS = [
             / "output"
             / "logistic"
             / "model_metrics.csv",
+
+        "output_dir":
+            BASE_DIR
+            / "output"
+            / "logistic",
     },
 
     {
         "name": "Decision Tree",
+        "slug": "decision_tree",
 
         "script":
             BASE_DIR
@@ -120,10 +133,16 @@ MODELS = [
             / "output"
             / "decision_tree"
             / "model_metrics.csv",
+
+        "output_dir":
+            BASE_DIR
+            / "output"
+            / "decision_tree",
     },
 
     {
         "name": "XGBoost",
+        "slug": "xgboost",
 
         "script":
             BASE_DIR
@@ -134,6 +153,11 @@ MODELS = [
             / "output"
             / "xgboost"
             / "model_metrics.csv",
+
+        "output_dir":
+            BASE_DIR
+            / "output"
+            / "xgboost",
     },
 ]
 
@@ -287,6 +311,82 @@ def load_model_results():
         result_list,
         ignore_index=True,
     )
+
+
+def publish_report_charts():
+    comparison_charts = [
+        ("model_comparison_metrics.png", "三模型測試指標比較"),
+        ("model_comparison_auc.png", "交叉驗證與測試集 AUC 比較"),
+        ("model_comparison_ranking.png", "模型綜合分數排名"),
+    ]
+    model_chart_files = [
+        ("confusion_matrix.png", "混淆矩陣"),
+        ("roc_curve.png", "ROC 曲線"),
+        ("pr_curve.png", "Precision-Recall 曲線"),
+        ("feature_importance.png", "特徵重要度"),
+    ]
+
+    REPORT_ASSET_DIR.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+
+    comparison_manifest = []
+    for filename, title in comparison_charts:
+        source = OUTPUT_DIR / filename
+        if not source.exists():
+            raise FileNotFoundError(
+                f"找不到模型比較圖，無法更新網站：\n{source}"
+            )
+
+        shutil.copy2(
+            source,
+            REPORT_ASSET_DIR / filename,
+        )
+        comparison_manifest.append(
+            {
+                "title": title,
+                "src": f"assets/{filename}",
+            }
+        )
+
+    model_manifest = []
+    for model_info in MODELS:
+        model_charts = []
+        for filename, title in model_chart_files:
+            source = model_info["output_dir"] / filename
+            if not source.exists():
+                if filename == "feature_importance.png":
+                    continue
+                raise FileNotFoundError(
+                    f"{model_info['name']} 缺少網站圖表：\n{source}"
+                )
+
+            report_filename = (
+                f"{model_info['slug']}_{filename}"
+            )
+            shutil.copy2(
+                source,
+                REPORT_ASSET_DIR / report_filename,
+            )
+            model_charts.append(
+                {
+                    "title": title,
+                    "src": f"assets/{report_filename}",
+                }
+            )
+
+        model_manifest.append(
+            {
+                "name": model_info["name"],
+                "charts": model_charts,
+            }
+        )
+
+    return {
+        "comparison": comparison_manifest,
+        "models": model_manifest,
+    }
 
 
 # ============================================================
@@ -965,34 +1065,6 @@ def main():
         encoding="utf-8-sig",
     )
 
-    target = pd.read_csv(
-        DATA_FILE,
-        usecols=["default_payment_next_month"],
-    )["default_payment_next_month"]
-    report_data = {
-        "dataset": {
-            "rows": int(len(target)),
-            "default_count": int(target.sum()),
-            "non_default_count": int((target == 0).sum()),
-            "default_rate": float(target.mean()),
-        },
-        "models": json.loads(
-            comparison.to_json(orient="records")
-        ),
-    }
-    REPORT_DATA_FILE.parent.mkdir(
-        parents=True,
-        exist_ok=True,
-    )
-    REPORT_DATA_FILE.write_text(
-        json.dumps(
-            report_data,
-            ensure_ascii=False,
-            indent=2,
-        ),
-        encoding="utf-8",
-    )
-
     # ========================================================
     # 建立圖表
     # ========================================================
@@ -1022,6 +1094,37 @@ def main():
 
     print(
         "✓ model_comparison_ranking.png"
+    )
+
+    chart_manifest = publish_report_charts()
+
+    target = pd.read_csv(
+        DATA_FILE,
+        usecols=["default_payment_next_month"],
+    )["default_payment_next_month"]
+    report_data = {
+        "dataset": {
+            "rows": int(len(target)),
+            "default_count": int(target.sum()),
+            "non_default_count": int((target == 0).sum()),
+            "default_rate": float(target.mean()),
+        },
+        "models": json.loads(
+            comparison.to_json(orient="records")
+        ),
+        "charts": chart_manifest,
+    }
+    REPORT_DATA_FILE.parent.mkdir(
+        parents=True,
+        exist_ok=True,
+    )
+    REPORT_DATA_FILE.write_text(
+        json.dumps(
+            report_data,
+            ensure_ascii=False,
+            indent=2,
+        ),
+        encoding="utf-8",
     )
 
     # ========================================================

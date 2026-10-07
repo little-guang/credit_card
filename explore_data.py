@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import argparse
 from pathlib import Path
+import shutil
 
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -17,6 +18,7 @@ import seaborn as sns
 ROOT = Path(__file__).resolve().parent
 DEFAULT_INPUT = ROOT / "data" / "clean" / "credit_card_clean.csv"
 DEFAULT_OUTPUT = ROOT / "data" / "reports"
+SITE_ASSET_DIR = ROOT / "docs" / "assets"
 TARGET = "default_payment_next_month"
 ID_COLUMN = "ID"
 PAYMENT_STATUS_COLUMNS = {"PAY_0", "PAY_2", "PAY_3", "PAY_4", "PAY_5", "PAY_6"}
@@ -56,10 +58,15 @@ def save_histograms(data: pd.DataFrame, columns: list[str], output_dir: Path, sh
 
     figure.suptitle("Numerical feature distributions", y=1.01, fontsize=16)
     figure.tight_layout()
-    figure.savefig(output_dir / "numeric_distributions.png", dpi=160, bbox_inches="tight")
+    histogram_file = output_dir / "numeric_distributions.png"
+    figure.savefig(histogram_file, dpi=160, bbox_inches="tight")
     if show:
         plt.show()
     plt.close(figure)
+    SITE_ASSET_DIR.mkdir(parents=True, exist_ok=True)
+    site_histogram = SITE_ASSET_DIR / "numeric_distributions.png"
+    shutil.copy2(histogram_file, site_histogram)
+    print(f"Website chart saved to: {site_histogram}")
 
 
 def explore(input_file: Path, output_dir: Path, show: bool = False) -> None:

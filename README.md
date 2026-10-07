@@ -28,7 +28,8 @@
 │   └── clean/                 # convert.py 產生的標準化 CSV
 ├── docs/
 │   ├── index.html             # GitHub Pages 報告網站
-│   └── model-comparison.json  # 由 run_all_models.py 更新的網站資料
+│   ├── model-comparison.json  # 由 run_all_models.py 更新的網站資料
+│   └── assets/                # 報告網站顯示的圖表
 ├── output/                    # 模型與比較報告產物（執行時建立，不納入 Git）
 ├── pyproject.toml
 └── uv.lock
@@ -64,13 +65,15 @@ uv run python explore_data.py
 uv run python explore_data.py --show
 ```
 
+執行探索分析時，數值特徵分布圖也會複製至 `docs/assets/`，供報告網站呈現。
+
 ### 3. 訓練與比較三個模型
 
 ```bash
 uv run python run_all_models.py
 ```
 
-此命令依序執行 Logistic Regression、Decision Tree 和 XGBoost，檢查每個模型是否成功產生一致且完整的指標，再輸出比較表、圖表、摘要及網站資料。模型個別輸出在 `output/logistic/`、`output/decision_tree/`、`output/xgboost/`；比較產物在 `output/model_comparison/`。這些都是可重現的衍生檔，已由 `.gitignore` 排除。
+此命令依序執行 Logistic Regression、Decision Tree 和 XGBoost，檢查每個模型是否成功產生一致且完整的指標，再輸出比較表、圖表、摘要及網站資料。模型比較圖以及各模型的混淆矩陣、ROC 曲線、PR 曲線和特徵重要度圖會複製至 `docs/assets/`；Decision Tree 的特徵重要度圖也會在此流程中產生。模型個別輸出在 `output/logistic/`、`output/decision_tree/`、`output/xgboost/`；比較產物在 `output/model_comparison/`。這些都是可重現的衍生檔，已由 `.gitignore` 排除。
 
 也可以單獨執行模型，例如：
 
@@ -84,9 +87,9 @@ uv run python train_xgboost.py
 
 ### 4. 開啟報告網站
 
-先執行 `run_all_models.py` 更新 `docs/model-comparison.json`，再於 GitHub 專案設定 **Settings → Pages → Deploy from a branch**，選擇主要分支及 `/docs` 資料夾。GitHub Pages 部署完成後，即可用 `https://<帳號>.github.io/<專案名稱>/` 分享報告。
+先依序執行 `convert.py`、`explore_data.py` 及 `run_all_models.py`，更新清理資料、探索分布圖、模型圖表和 `docs/model-comparison.json`；再於 GitHub 專案設定 **Settings → Pages → Deploy from a branch**，選擇主要分支及 `/docs` 資料夾。GitHub Pages 部署完成後，即可用 `https://<帳號>.github.io/<專案名稱>/` 分享含圖表的報告。
 
-網站是純 HTML/CSS/JavaScript，不需要額外套件或建置步驟；每次重新訓練並更新 JSON 後，提交 `docs/model-comparison.json` 即可發佈新結果。
+網站是純 HTML/CSS/JavaScript，不需要額外套件或建置步驟；更新報告時，請一併提交 `docs/model-comparison.json` 與 `docs/assets/` 中新產生或更新的圖表。
 
 ## 評估方式
 

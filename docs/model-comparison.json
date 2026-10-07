@@ -69,5 +69,86 @@
       "F1_Rank": 3.0,
       "Overall_Rank": 3
     }
-  ]
+  ],
+  "charts": {
+    "comparison": [
+      {
+        "title": "三模型測試指標比較",
+        "src": "assets/model_comparison_metrics.png"
+      },
+      {
+        "title": "交叉驗證與測試集 AUC 比較",
+        "src": "assets/model_comparison_auc.png"
+      },
+      {
+        "title": "模型綜合分數排名",
+        "src": "assets/model_comparison_ranking.png"
+      }
+    ],
+    "models": [
+      {
+        "name": "Logistic Regression",
+        "charts": [
+          {
+            "title": "混淆矩陣",
+            "src": "assets/logistic_confusion_matrix.png"
+          },
+          {
+            "title": "ROC 曲線",
+            "src": "assets/logistic_roc_curve.png"
+          },
+          {
+            "title": "Precision-Recall 曲線",
+            "src": "assets/logistic_pr_curve.png"
+          },
+          {
+            "title": "特徵重要度",
+            "src": "assets/logistic_feature_importance.png"
+          }
+        ]
+      },
+      {
+        "name": "Decision Tree",
+        "charts": [
+          {
+            "title": "混淆矩陣",
+            "src": "assets/decision_tree_confusion_matrix.png"
+          },
+          {
+            "title": "ROC 曲線",
+            "src": "assets/decision_tree_roc_curve.png"
+          },
+          {
+            "title": "Precision-Recall 曲線",
+            "src": "assets/decision_tree_pr_curve.png"
+          },
+          {
+            "title": "特徵重要度",
+            "src": "assets/decision_tree_feature_importance.png"
+          }
+        ]
+      },
+      {
+        "name": "XGBoost",
+        "charts": [
+          {
+            "title": "混淆矩陣",
+            "src": "assets/xgboost_confusion_matrix.png"
+          },
+          {
+            "title": "ROC 曲線",
+            "src": "assets/xgboost_roc_curve.png"
+          },
+          {
+            "title": "Precision-Recall 曲線",
+            "src": "assets/xgboost_pr_curve.png"
+          },
+          {
+            "title": "特徵重要度",
+            "src": "assets/xgboost_feature_importance.png"
+          }
+        ]
+      }
+    ]
+  }
 }

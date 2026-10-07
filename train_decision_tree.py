@@ -297,6 +297,7 @@ def main():
 
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8")
+    setup_chinese_font()
     print("=" * 70)
     print("信用卡違約 Decision Tree")
     print("=" * 70)
@@ -670,6 +671,46 @@ def main():
         index=False,
         encoding="utf-8-sig",
     )
+
+    importance_plot = (
+        feature_importance
+        .head(15)
+        .sort_values("Importance")
+    )
+    figure, axis = plt.subplots(
+        figsize=(10, 7)
+    )
+    bars = axis.barh(
+        importance_plot["Feature"],
+        importance_plot["Importance"],
+        color="#0d9488",
+    )
+    axis.set_title("Decision Tree Feature Importance")
+    axis.set_xlabel("Feature Importance")
+    axis.set_ylabel("Feature")
+    for bar, value in zip(
+        bars,
+        importance_plot["Importance"],
+    ):
+        axis.text(
+            value,
+            bar.get_y() + bar.get_height() / 2,
+            f"{value:.4f}",
+            va="center",
+            ha="left",
+        )
+    axis.grid(
+        axis="x",
+        alpha=0.25,
+    )
+    figure.tight_layout()
+    figure.savefig(
+        OUTPUT_DIR / "feature_importance.png",
+        dpi=180,
+        bbox_inches="tight",
+    )
+    plt.close(figure)
+
 # ========================================================
 # Confusion Matrix
 # ========================================================
