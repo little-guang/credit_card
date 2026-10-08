@@ -20,177 +20,423 @@
       "dimension": "age_group",
       "group": "21–29歲",
       "count": 9618,
+      "default_count": 2197,
       "median_credit_limit": 90000.0,
       "median_latest_bill": 23311.0,
       "median_avg_bill": 21366.0,
       "median_latest_payment": 2000.0,
       "median_avg_payment": 2076.5833,
-      "default_rate": 22.8426
+      "default_rate": 22.8426,
+      "default_rate_ci_low": 22.0145,
+      "default_rate_ci_high": 23.6924
     },
     {
       "dimension": "age_group",
       "group": "30–39歲",
       "count": 11238,
+      "default_count": 2276,
       "median_credit_limit": 180000.0,
       "median_latest_bill": 21714.0,
       "median_avg_bill": 21148.0,
       "median_latest_payment": 2500.0,
       "median_avg_payment": 2874.75,
-      "default_rate": 20.2527
+      "default_rate": 20.2527,
+      "default_rate_ci_low": 19.5199,
+      "default_rate_ci_high": 21.0059
     },
     {
       "dimension": "age_group",
       "group": "40–49歲",
       "count": 6464,
+      "default_count": 1485,
       "median_credit_limit": 160000.0,
       "median_latest_bill": 21815.0,
       "median_avg_bill": 20345.6667,
       "median_latest_payment": 2191.0,
       "median_avg_payment": 2438.1667,
-      "default_rate": 22.9734
+      "default_rate": 22.9734,
+      "default_rate_ci_low": 21.9641,
+      "default_rate_ci_high": 24.0148
     },
     {
       "dimension": "age_group",
       "group": "50–59歲",
       "count": 2341,
+      "default_count": 582,
       "median_credit_limit": 120000.0,
       "median_latest_bill": 22136.0,
       "median_avg_bill": 20853.8333,
       "median_latest_payment": 2047.0,
       "median_avg_payment": 2029.0,
-      "default_rate": 24.8612
+      "default_rate": 24.8612,
+      "default_rate_ci_low": 23.1525,
+      "default_rate_ci_high": 26.6523
     },
     {
       "dimension": "age_group",
       "group": "60歲以上",
       "count": 339,
+      "default_count": 96,
       "median_credit_limit": 160000.0,
       "median_latest_bill": 22715.0,
       "median_avg_bill": 22823.6667,
       "median_latest_payment": 2000.0,
       "median_avg_payment": 2106.6667,
-      "default_rate": 28.3186
+      "default_rate": 28.3186,
+      "default_rate_ci_low": 23.7861,
+      "default_rate_ci_high": 33.3369
     },
     {
       "dimension": "sex",
       "group": "女性",
       "count": 18112,
+      "default_count": 3763,
       "median_credit_limit": 150000.0,
       "median_latest_bill": 21097.0,
       "median_avg_bill": 20262.1667,
       "median_latest_payment": 2124.5,
       "median_avg_payment": 2464.8333,
-      "default_rate": 20.7763
+      "default_rate": 20.7763,
+      "default_rate_ci_low": 20.1916,
+      "default_rate_ci_high": 21.3733
     },
     {
       "dimension": "sex",
       "group": "男性",
       "count": 11888,
+      "default_count": 2873,
       "median_credit_limit": 130000.0,
       "median_latest_bill": 24185.0,
       "median_avg_bill": 22039.3333,
       "median_latest_payment": 2100.0,
       "median_avg_payment": 2268.0,
-      "default_rate": 24.1672
+      "default_rate": 24.1672,
+      "default_rate_ci_low": 23.4061,
+      "default_rate_ci_high": 24.9451
     },
     {
       "dimension": "education",
       "group": "其他",
       "count": 123,
+      "default_count": 7,
       "median_credit_limit": 200000.0,
       "median_latest_bill": 10554.0,
       "median_avg_bill": 12205.8333,
       "median_latest_payment": 3000.0,
       "median_avg_payment": 3416.6667,
-      "default_rate": 5.6911
+      "default_rate": 5.6911,
+      "default_rate_ci_low": 2.7838,
+      "default_rate_ci_high": 11.2823
     },
     {
       "dimension": "education",
       "group": "大學",
       "count": 14030,
+      "default_count": 3330,
       "median_credit_limit": 110000.0,
       "median_latest_bill": 27224.0,
       "median_avg_bill": 25011.5833,
       "median_latest_payment": 2027.5,
       "median_avg_payment": 2233.3333,
-      "default_rate": 23.7349
+      "default_rate": 23.7349,
+      "default_rate_ci_low": 23.0381,
+      "default_rate_ci_high": 24.446
     },
     {
       "dimension": "education",
       "group": "未分類",
       "count": 345,
+      "default_count": 26,
       "median_credit_limit": 150000.0,
       "median_latest_bill": 44749.0,
       "median_avg_bill": 33090.0,
       "median_latest_payment": 3000.0,
       "median_avg_payment": 3363.0,
-      "default_rate": 7.5362
+      "default_rate": 7.5362,
+      "default_rate_ci_low": 5.1945,
+      "default_rate_ci_high": 10.8132
     },
     {
       "dimension": "education",
       "group": "研究所",
       "count": 10585,
+      "default_count": 2036,
       "median_credit_limit": 200000.0,
       "median_latest_bill": 14202.0,
       "median_avg_bill": 15179.6667,
       "median_latest_payment": 2500.0,
       "median_avg_payment": 2988.1667,
-      "default_rate": 19.2348
+      "default_rate": 19.2348,
+      "default_rate_ci_low": 18.4951,
+      "default_rate_ci_high": 19.9967
     },
     {
       "dimension": "education",
       "group": "高中",
       "count": 4917,
+      "default_count": 1237,
       "median_credit_limit": 80000.0,
       "median_latest_bill": 25554.0,
       "median_avg_bill": 22630.1667,
       "median_latest_payment": 2000.0,
       "median_avg_payment": 1933.3333,
-      "default_rate": 25.1576
+      "default_rate": 25.1576,
+      "default_rate_ci_low": 23.9645,
+      "default_rate_ci_high": 26.3896
     },
     {
       "dimension": "marriage",
       "group": "其他",
       "count": 323,
+      "default_count": 84,
       "median_credit_limit": 60000.0,
       "median_latest_bill": 23496.0,
       "median_avg_bill": 19573.8333,
       "median_latest_payment": 1900.0,
       "median_avg_payment": 1666.6667,
-      "default_rate": 26.0062
+      "default_rate": 26.0062,
+      "default_rate_ci_low": 21.5241,
+      "default_rate_ci_high": 31.0524
     },
     {
       "dimension": "marriage",
       "group": "已婚",
       "count": 13659,
+      "default_count": 3206,
       "median_credit_limit": 160000.0,
       "median_latest_bill": 22357.0,
       "median_avg_bill": 21074.6667,
       "median_latest_payment": 2157.0,
       "median_avg_payment": 2428.0,
-      "default_rate": 23.4717
+      "default_rate": 23.4717,
+      "default_rate_ci_low": 22.7685,
+      "default_rate_ci_high": 24.1899
     },
     {
       "dimension": "marriage",
       "group": "未分類",
       "count": 54,
+      "default_count": 5,
       "median_credit_limit": 115000.0,
       "median_latest_bill": 6357.0,
       "median_avg_bill": 12316.5833,
       "median_latest_payment": 1786.5,
       "median_avg_payment": 1284.25,
-      "default_rate": 9.2593
+      "default_rate": 9.2593,
+      "default_rate_ci_low": 4.0201,
+      "default_rate_ci_high": 19.9101
     },
     {
       "dimension": "marriage",
       "group": "未婚",
       "count": 15964,
+      "default_count": 3341,
       "median_credit_limit": 130000.0,
       "median_latest_bill": 22435.5,
       "median_avg_bill": 21122.8333,
       "median_latest_payment": 2100.0,
       "median_avg_payment": 2394.0,
-      "default_rate": 20.9283
+      "default_rate": 20.9283,
+      "default_rate_ci_low": 20.3043,
+      "default_rate_ci_high": 21.5663
+    }
+  ],
+  "risk_factors": [
+    {
+      "id": "delay_frequency",
+      "title": "近六期曾延遲的期數",
+      "description": "PAY_0、PAY_2 至 PAY_6 中大於 0 的期數；重複延遲可呈現比單一期狀態更持續的訊號。",
+      "reference_group": "0 次",
+      "eligible_count": 30000,
+      "groups": [
+        {
+          "group": "0 次",
+          "count": 19931,
+          "default_count": 2334,
+          "default_rate": 11.7104,
+          "default_rate_ci_low": 11.2714,
+          "default_rate_ci_high": 12.1642,
+          "difference_vs_reference_pp": 0.0,
+          "relative_rate_vs_reference": 1.0
+        },
+        {
+          "group": "1 次",
+          "count": 4426,
+          "default_count": 1320,
+          "default_rate": 29.8238,
+          "default_rate_ci_low": 28.4939,
+          "default_rate_ci_high": 31.1886,
+          "difference_vs_reference_pp": 18.1134,
+          "relative_rate_vs_reference": 2.5468
+        },
+        {
+          "group": "2 次",
+          "count": 1899,
+          "default_count": 736,
+          "default_rate": 38.7572,
+          "default_rate_ci_low": 36.5908,
+          "default_rate_ci_high": 40.9691,
+          "difference_vs_reference_pp": 27.0468,
+          "relative_rate_vs_reference": 3.3096
+        },
+        {
+          "group": "3 次以上",
+          "count": 3744,
+          "default_count": 2246,
+          "default_rate": 59.9893,
+          "default_rate_ci_low": 58.4105,
+          "default_rate_ci_high": 61.5476,
+          "difference_vs_reference_pp": 48.2789,
+          "relative_rate_vs_reference": 5.1227
+        }
+      ]
+    },
+    {
+      "id": "latest_delay",
+      "title": "最近一期付款狀態",
+      "description": "PAY_0 大於 0 代表有正值延遲紀錄；非正值合併為參照組，不等於每筆都代表準時付款。",
+      "reference_group": "無正值延遲紀錄",
+      "eligible_count": 30000,
+      "groups": [
+        {
+          "group": "無正值延遲紀錄",
+          "count": 23182,
+          "default_count": 3207,
+          "default_rate": 13.834,
+          "default_rate_ci_low": 13.3955,
+          "default_rate_ci_high": 14.2845,
+          "difference_vs_reference_pp": 0.0,
+          "relative_rate_vs_reference": 1.0
+        },
+        {
+          "group": "1 個月",
+          "count": 3688,
+          "default_count": 1252,
+          "default_rate": 33.9479,
+          "default_rate_ci_low": 32.437,
+          "default_rate_ci_high": 35.4922,
+          "difference_vs_reference_pp": 20.1139,
+          "relative_rate_vs_reference": 2.4539
+        },
+        {
+          "group": "2 個月",
+          "count": 2667,
+          "default_count": 1844,
+          "default_rate": 69.1414,
+          "default_rate_ci_low": 67.3618,
+          "default_rate_ci_high": 70.8659,
+          "difference_vs_reference_pp": 55.3073,
+          "relative_rate_vs_reference": 4.9979
+        },
+        {
+          "group": "3 個月以上",
+          "count": 463,
+          "default_count": 333,
+          "default_rate": 71.9222,
+          "default_rate_ci_low": 67.6614,
+          "default_rate_ci_high": 75.8223,
+          "difference_vs_reference_pp": 58.0882,
+          "relative_rate_vs_reference": 5.1989
+        }
+      ]
+    },
+    {
+      "id": "credit_utilization",
+      "title": "最近一期帳單／信用額度",
+      "description": "以最近一期帳單除以正信用額度估算；僅納入非負使用率，負帳單或無法計算者不列入。",
+      "reference_group": "低於 30%",
+      "eligible_count": 29410,
+      "groups": [
+        {
+          "group": "低於 30%",
+          "count": 14202,
+          "default_count": 2599,
+          "default_rate": 18.3002,
+          "default_rate_ci_low": 17.6729,
+          "default_rate_ci_high": 18.9447,
+          "difference_vs_reference_pp": 0.0,
+          "relative_rate_vs_reference": 1.0
+        },
+        {
+          "group": "30%–59%",
+          "count": 4307,
+          "default_count": 999,
+          "default_rate": 23.1948,
+          "default_rate_ci_low": 21.9585,
+          "default_rate_ci_high": 24.4789,
+          "difference_vs_reference_pp": 4.8946,
+          "relative_rate_vs_reference": 1.2675
+        },
+        {
+          "group": "60%–89%",
+          "count": 4851,
+          "default_count": 1338,
+          "default_rate": 27.5819,
+          "default_rate_ci_low": 26.3424,
+          "default_rate_ci_high": 28.857,
+          "difference_vs_reference_pp": 9.2817,
+          "relative_rate_vs_reference": 1.5072
+        },
+        {
+          "group": "90% 以上",
+          "count": 6050,
+          "default_count": 1591,
+          "default_rate": 26.2975,
+          "default_rate_ci_low": 25.2034,
+          "default_rate_ci_high": 27.4217,
+          "difference_vs_reference_pp": 7.9973,
+          "relative_rate_vs_reference": 1.437
+        }
+      ]
+    },
+    {
+      "id": "payment_coverage",
+      "title": "近六期還款金額／帳單金額",
+      "description": "六期還款總額除以六期帳單總額；只納入帳單總額為正的紀錄，且不同月份可能有時間落差，僅作探索性指標。",
+      "reference_group": "100% 以上",
+      "eligible_count": 28929,
+      "groups": [
+        {
+          "group": "低於 25%",
+          "count": 18068,
+          "default_count": 4633,
+          "default_rate": 25.642,
+          "default_rate_ci_low": 25.0105,
+          "default_rate_ci_high": 26.2839,
+          "difference_vs_reference_pp": 9.7632,
+          "relative_rate_vs_reference": 1.6149
+        },
+        {
+          "group": "25%–49%",
+          "count": 2558,
+          "default_count": 369,
+          "default_rate": 14.4253,
+          "default_rate_ci_low": 13.1171,
+          "default_rate_ci_high": 15.8403,
+          "difference_vs_reference_pp": -1.4535,
+          "relative_rate_vs_reference": 0.9085
+        },
+        {
+          "group": "50%–99%",
+          "count": 4770,
+          "default_count": 705,
+          "default_rate": 14.7799,
+          "default_rate_ci_low": 13.8011,
+          "default_rate_ci_high": 15.8154,
+          "difference_vs_reference_pp": -1.099,
+          "relative_rate_vs_reference": 0.9308
+        },
+        {
+          "group": "100% 以上",
+          "count": 3533,
+          "default_count": 561,
+          "default_rate": 15.8789,
+          "default_rate_ci_low": 14.7108,
+          "default_rate_ci_high": 17.121,
+          "difference_vs_reference_pp": 0.0,
+          "relative_rate_vs_reference": 1.0
+        }
+      ]
     }
   ],
   "correlations": [
@@ -338,7 +584,8 @@
   "notes": [
     "帳單及還款金額為資料中的歷史金額欄位；「近六期平均」是六個月份的簡單平均。",
     "信用額度、帳單、還款使用中位數呈現典型客戶，較不易被極少數大額數值拉高。",
-    "分組差異及 Spearman 相關只代表這批歷史資料中的一起變化，不表示因果關係。",
+    "違約率的區間為 95% Wilson 信賴區間；各組未經其他變數調整，分組差異與相關不表示因果關係。",
+    "此資料只涵蓋六期還款狀態、額度、帳單及還款金額；分析結果不可當成個人授信判斷或因果證據。",
     "學歷代碼 0、5、6 及婚姻代碼 0 合併為未分類。"
   ]
 }

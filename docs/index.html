@@ -141,6 +141,7 @@
     <nav class="hero-links" aria-label="報告導覽">
       <a href="#ranking">模型排名</a>
       <a href="#metrics">指標比較</a>
+      <a href="#risk-signals">違約訊號</a>
       <a href="#segments">族群分析</a>
       <a href="#charts">結果圖表</a>
       <a href="https://archive.ics.uci.edu/dataset/350/default+of+credit+card+clients" target="_blank" rel="noreferrer">UCI 資料來源 ↗</a>
@@ -186,15 +187,75 @@
       : Number(value).toLocaleString("zh-TW", { maximumFractionDigits: digits, minimumFractionDigits: digits });
     const renderSegmentAnalysis = () => {
       const container = document.querySelector("#segment-analysis-content");
-      if (!container) return;
+      const riskContainer = document.querySelector("#risk-signals");
+      if (!container || !riskContainer) return;
       if (segmentError) {
         container.innerHTML = `<div class="error">無法載入族群分析資料：${escapeHtml(segmentError)}。請執行 <code>uv run python analyze_segments.py</code>。</div>`;
+        riskContainer.querySelector("#risk-factor-tables").innerHTML =
+          `<div class="error">無法載入行為風險分析資料：${escapeHtml(segmentError)}。請執行 <code>uv run python analyze_segments.py</code>。</div>`;
         return;
       }
       if (!segmentReport) return;
 
       const dimensionSelect = container.querySelector("#segment-dimension");
       const measureSelect = container.querySelector("#segment-measure");
+      const formatRate = (value) => `${segmentNumber(value, 1)}%`;
+      const rateInterval = (item) =>
+        `${formatRate(item.default_rate)} (${formatRate(item.default_rate_ci_low)}–${formatRate(item.default_rate_ci_high)})`;
+      const riskFactors = segmentReport.risk_factors || [];
+      const delayFactor = riskFactors.find((item) => item.id === "delay_frequency");
+      const latestFactor = riskFactors.find((item) => item.id === "latest_delay");
+      const utilizationFactor = riskFactors.find((item) => item.id === "credit_utilization");
+      const coverageFactor = riskFactors.find((item) => item.id === "payment_coverage");
+      const delayNone = delayFactor?.groups.find((item) => item.group === "0 次");
+      const delayFrequent = delayFactor?.groups.find((item) => item.group === "3 次以上");
+      const recentNoDelay = latestFactor?.groups.find((item) => item.group === "無正值延遲紀錄");
+      const recentTwoMonths = latestFactor?.groups.find((item) => item.group === "2 個月");
+      const utilizationLow = utilizationFactor?.groups.find((item) => item.group === "低於 30%");
+      const utilizationMidHigh = utilizationFactor?.groups.find((item) => item.group === "60%–89%");
+      const coverageLow = coverageFactor?.groups.find((item) => item.group === "低於 25%");
+      const coverageFull = coverageFactor?.groups.find((item) => item.group === "100% 以上");
+      const riskInsights = [];
+      if (delayNone && delayFrequent) {
+        riskInsights.push(
+          `最明顯的行為訊號是重複延遲：近六期有 3 次以上正值延遲者違約率 ${rateInterval(delayFrequent)}（n=${segmentNumber(delayFrequent.count)}），0 次者為 ${rateInterval(delayNone)}（n=${segmentNumber(delayNone.count)}）；相差 ${segmentNumber(delayFrequent.difference_vs_reference_pp, 1)} 個百分點，約為 ${segmentNumber(delayFrequent.relative_rate_vs_reference, 1)} 倍。`
+        );
+      }
+      if (recentNoDelay && recentTwoMonths) {
+        riskInsights.push(
+          `最近一期 PAY_0 = 2 的群組違約率為 ${rateInterval(recentTwoMonths)}，PAY_0 非正值群組為 ${rateInterval(recentNoDelay)}；近期狀態提供額外警訊，但小樣本群組的區間較寬。`
+        );
+      }
+      if (utilizationLow && utilizationMidHigh) {
+        riskInsights.push(
+          `額度使用率不是單調關係：60%–89% 組為 ${rateInterval(utilizationMidHigh)}，低於 30% 組為 ${rateInterval(utilizationLow)}；因此不宜把高使用率單獨當作違約原因或唯一門檻。`
+        );
+      }
+      if (coverageLow && coverageFull) {
+        riskInsights.push(
+          `六期還款總額低於帳單總額 25% 的群組為 ${rateInterval(coverageLow)}，還款總額達帳單總額的群組為 ${rateInterval(coverageFull)}；此為跨月彙總代理指標，不能直接解讀為客戶未繳金額。`
+        );
+      }
+      riskContainer.querySelector("#risk-insights").innerHTML = riskInsights
+        .map((insight) => `<li>${escapeHtml(insight)}</li>`)
+        .join("");
+      riskContainer.querySelector("#risk-factor-tables").innerHTML = riskFactors.map((factor) => `
+        <div class="analysis-table-wrap">
+          <h3>${escapeHtml(factor.title)}</h3>
+          <p class="sub">${escapeHtml(factor.description)} 參照組：${escapeHtml(factor.reference_group)}；有效樣本 n=${segmentNumber(factor.eligible_count)}。</p>
+          <table class="analysis-table">
+            <thead><tr><th>分組</th><th>樣本數</th><th>違約人數</th><th>違約率（95% CI）</th><th>相對參照組違約比例</th></tr></thead>
+            <tbody>${factor.groups.map((item) => `
+              <tr>
+                <td>${escapeHtml(item.group)}</td>
+                <td>${segmentNumber(item.count)}</td>
+                <td>${segmentNumber(item.default_count)}</td>
+                <td>${rateInterval(item)}</td>
+                <td>${item.relative_rate_vs_reference == null ? "—" : `${segmentNumber(item.relative_rate_vs_reference, 2)} 倍`}</td>
+              </tr>`).join("")}
+            </tbody>
+          </table>
+        </div>`).join("");
       const draw = () => {
         const dimension = dimensionSelect.value;
         const measure = measureSelect.value;
@@ -230,8 +291,9 @@
           <tr>
             <td>${escapeHtml(item.group)}</td>
             <td>${segmentNumber(item.count)}</td>
+            <td>${segmentNumber(item.default_count)}</td>
             <td>${segmentNumber(item[measure], measure === "default_rate" ? 1 : 0)}${measure === "default_rate" ? "%" : ""}</td>
-            <td>${segmentNumber(item.default_rate, 1)}%</td>
+            <td>${rateInterval(item)}</td>
             <td>${segmentNumber(item.median_credit_limit)}</td>
             <td>${segmentNumber(item.median_avg_bill)}</td>
             <td>${segmentNumber(item.median_avg_payment)}</td>
@@ -254,11 +316,11 @@
       const female = sexes.find((item) => item.group === "女性");
       const graduate = educations.find((item) => item.group === "研究所");
       const highSchool = educations.find((item) => item.group === "高中");
-      const displayRate = (item) => `${item.group} ${segmentNumber(item.default_rate, 1)}%`;
+      const displayRate = (item) => `${item.group} ${rateInterval(item)}（n=${segmentNumber(item.count)}）`;
       container.querySelector("#segment-insights").innerHTML = `
-        <li>年齡組別的違約比例，從 ${displayRate(ageMin)} 到 ${displayRate(ageMax)}；較年長組樣本較少，請一併看人數。</li>
-        <li>資料中男性違約比例為 ${segmentNumber(male.default_rate, 1)}%，女性為 ${segmentNumber(female.default_rate, 1)}%。</li>
-        <li>研究所學歷組違約比例為 ${segmentNumber(graduate.default_rate, 1)}%，高中組為 ${segmentNumber(highSchool.default_rate, 1)}%；這只表示本資料中的組別差異。</li>`;
+        <li>年齡組違約率從 ${displayRate(ageMin)} 到 ${displayRate(ageMax)}；最高率組樣本相對較少，需連同區間解讀，不能視為年齡造成違約。</li>
+        <li>男性為 ${displayRate(male)}，女性為 ${displayRate(female)}；此為未調整的人口分組差異，不代表性別本身具有因果影響。</li>
+        <li>高中組為 ${displayRate(highSchool)}，研究所組為 ${displayRate(graduate)}；教育分組只能描述此樣本，且不是比還款行為更直接的風險證據。</li>`;
 
       const correlations = [...segmentReport.correlations]
         .filter((item) => item.rho != null && (
@@ -405,8 +467,16 @@
             </div>
           </section>
 
+          <section id="risk-signals" class="panel" style="margin-bottom:18px">
+            <h2>哪些訊號與下期違約較相關？</h2>
+            <p class="sub">比較前六期延遲紀錄、最近一期付款狀態、帳單／信用額度，以及還款金額／帳單金額。違約率是歷史樣本中的比例，不是個人預測或因果結論。</p>
+            <ul id="risk-insights" class="insight-list"></ul>
+            <div id="risk-factor-tables"></div>
+            <div class="note">延遲期數定義為六期 PAY 欄位中大於 0 的期數。每組均列出樣本數及 95% Wilson 信賴區間；「相對比例」是違約率之比，不是勝算比。最近一期帳單／額度及六期還款／帳單都只是粗略代理指標，尤其還款與帳單可能有跨月時間差；不可單獨據此判斷個人是否會違約。</div>
+          </section>
+
           <section id="segments" class="panel" style="margin-bottom:18px">
-            <h2>不同族群的消費、帳單與還款狀況</h2>
+            <h2>不同族群的帳單與還款狀況</h2>
             <p class="sub">從 30,000 筆歷史資料，切換年齡、性別、學歷或婚姻狀況，比較信用額度、帳單、還款和下一期違約比例。金額以中位數呈現，較不容易被少數特別大的金額影響。</p>
             <div id="segment-analysis-content">
               <p class="sub">正在載入分組分析…</p>
@@ -432,7 +502,7 @@
               <div id="segment-chart" class="analysis-chart"></div>
               <div class="analysis-table-wrap">
                 <table class="analysis-table">
-                  <thead><tr><th>族群</th><th>人數</th><th>目前選擇的數值</th><th>下一期違約比例</th><th>信用額度中位數</th><th>近六期平均帳單中位數</th><th>近六期平均還款中位數</th></tr></thead>
+                  <thead><tr><th>族群</th><th>樣本數</th><th>違約人數</th><th>目前選擇的數值</th><th>違約比例（95% CI）</th><th>信用額度中位數</th><th>近六期平均帳單中位數</th><th>近六期平均還款中位數</th></tr></thead>
                   <tbody id="segment-table"></tbody>
                 </table>
               </div>

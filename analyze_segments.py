@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import math
 from pathlib import Path
 
 import numpy as np
@@ -70,6 +71,23 @@ def _json_number(value: object) -> float | None:
     return round(float(value), 4)
 
 
+def _wilson_interval(events: int, total: int) -> tuple[float | None, float | None]:
+    """Return a 95% Wilson confidence interval for a proportion, in percent."""
+    if total == 0:
+        return None, None
+
+    z = 1.96
+    proportion = events / total
+    denominator = 1 + z**2 / total
+    center = (proportion + z**2 / (2 * total)) / denominator
+    margin = (
+        z
+        * math.sqrt(proportion * (1 - proportion) / total + z**2 / (4 * total**2))
+        / denominator
+    )
+    return (center - margin) * 100, (center + margin) * 100
+
+
 def _prepare_data(data: pd.DataFrame) -> pd.DataFrame:
     """Add interpretable recent/average financial measures and group labels."""
     data = data.rename(
@@ -105,20 +123,161 @@ def _summarize_groups(data: pd.DataFrame) -> list[dict[str, object]]:
 
     for dimension in group_columns:
         for label, group in data.groupby(dimension, observed=True, sort=True):
+            default_count = int(group[TARGET].sum())
+            ci_low, ci_high = _wilson_interval(default_count, len(group))
             group_rows.append(
                 {
                     "dimension": dimension,
                     "group": str(label),
                     "count": int(len(group)),
+                    "default_count": default_count,
                     "median_credit_limit": _json_number(group["LIMIT_BAL"].median()),
                     "median_latest_bill": _json_number(group["BILL_AMT1"].median()),
                     "median_avg_bill": _json_number(group["avg_bill_6m"].median()),
                     "median_latest_payment": _json_number(group["PAY_AMT1"].median()),
                     "median_avg_payment": _json_number(group["avg_payment_6m"].median()),
                     "default_rate": _json_number(group[TARGET].mean() * 100),
+                    "default_rate_ci_low": _json_number(ci_low),
+                    "default_rate_ci_high": _json_number(ci_high),
                 }
             )
     return group_rows
+
+
+def _summarize_risk_factor(
+    data: pd.DataFrame,
+    factor_id: str,
+    title: str,
+    description: str,
+    groups: list[tuple[str, pd.Series]],
+    reference_group: str,
+) -> dict[str, object]:
+    """Summarize observed default rates and contrasts against a reference group."""
+    reference_label = next(
+        (label for label, _ in groups if label == reference_group),
+        None,
+    )
+    if reference_label is None:
+        raise ValueError(f"Reference group {reference_group!r} is missing for {factor_id}.")
+    reference = data.loc[dict(groups)[reference_label], TARGET]
+    reference_rate = float(reference.mean()) if len(reference) else None
+
+    rows: list[dict[str, object]] = []
+    for label, mask in groups:
+        values = data.loc[mask, TARGET]
+        total = len(values)
+        defaults = int(values.sum())
+        rate = float(values.mean() * 100) if total else None
+        ci_low, ci_high = _wilson_interval(defaults, total)
+        difference = (
+            rate - reference_rate * 100
+            if rate is not None and reference_rate is not None
+            else None
+        )
+        relative_rate = (
+            rate / (reference_rate * 100)
+            if rate is not None and reference_rate
+            else None
+        )
+        rows.append(
+            {
+                "group": label,
+                "count": total,
+                "default_count": defaults,
+                "default_rate": _json_number(rate),
+                "default_rate_ci_low": _json_number(ci_low),
+                "default_rate_ci_high": _json_number(ci_high),
+                "difference_vs_reference_pp": _json_number(difference),
+                "relative_rate_vs_reference": _json_number(relative_rate),
+            }
+        )
+
+    return {
+        "id": factor_id,
+        "title": title,
+        "description": description,
+        "reference_group": reference_group,
+        "eligible_count": int(sum(len(data.loc[mask]) for _, mask in groups)),
+        "groups": rows,
+    }
+
+
+def _risk_factors(data: pd.DataFrame) -> list[dict[str, object]]:
+    delay_labels = ["0 次", "1 次", "2 次", "3 次以上"]
+    delay_masks = [
+        data["delayed_months"] == 0,
+        data["delayed_months"] == 1,
+        data["delayed_months"] == 2,
+        data["delayed_months"] >= 3,
+    ]
+
+    latest_labels = ["無正值延遲紀錄", "1 個月", "2 個月", "3 個月以上"]
+    latest_masks = [
+        data["PAY_0"] <= 0,
+        data["PAY_0"] == 1,
+        data["PAY_0"] == 2,
+        data["PAY_0"] >= 3,
+    ]
+
+    utilization = data["BILL_AMT1"] / data["LIMIT_BAL"].replace(0, np.nan)
+    utilization_labels = [
+        "低於 30%",
+        "30%–59%",
+        "60%–89%",
+        "90% 以上",
+    ]
+    utilization_masks = [
+        (utilization >= 0) & (utilization < 0.3),
+        (utilization >= 0.3) & (utilization < 0.6),
+        (utilization >= 0.6) & (utilization < 0.9),
+        utilization >= 0.9,
+    ]
+
+    bill_total = data[[f"BILL_AMT{i}" for i in range(1, 7)]].sum(axis=1)
+    payment_total = data[[f"PAY_AMT{i}" for i in range(1, 7)]].sum(axis=1)
+    coverage = payment_total / bill_total.where(bill_total > 0)
+    coverage_labels = ["低於 25%", "25%–49%", "50%–99%", "100% 以上"]
+    coverage_masks = [
+        (coverage >= 0) & (coverage < 0.25),
+        (coverage >= 0.25) & (coverage < 0.5),
+        (coverage >= 0.5) & (coverage < 1),
+        coverage >= 1,
+    ]
+
+    return [
+        _summarize_risk_factor(
+            data,
+            "delay_frequency",
+            "近六期曾延遲的期數",
+            "PAY_0、PAY_2 至 PAY_6 中大於 0 的期數；重複延遲可呈現比單一期狀態更持續的訊號。",
+            list(zip(delay_labels, delay_masks, strict=True)),
+            "0 次",
+        ),
+        _summarize_risk_factor(
+            data,
+            "latest_delay",
+            "最近一期付款狀態",
+            "PAY_0 大於 0 代表有正值延遲紀錄；非正值合併為參照組，不等於每筆都代表準時付款。",
+            list(zip(latest_labels, latest_masks, strict=True)),
+            "無正值延遲紀錄",
+        ),
+        _summarize_risk_factor(
+            data,
+            "credit_utilization",
+            "最近一期帳單／信用額度",
+            "以最近一期帳單除以正信用額度估算；僅納入非負使用率，負帳單或無法計算者不列入。",
+            list(zip(utilization_labels, utilization_masks, strict=True)),
+            "低於 30%",
+        ),
+        _summarize_risk_factor(
+            data,
+            "payment_coverage",
+            "近六期還款金額／帳單金額",
+            "六期還款總額除以六期帳單總額；只納入帳單總額為正的紀錄，且不同月份可能有時間落差，僅作探索性指標。",
+            list(zip(coverage_labels, coverage_masks, strict=True)),
+            "100% 以上",
+        ),
+    ]
 
 
 def _correlations(data: pd.DataFrame) -> list[dict[str, object]]:
@@ -148,11 +307,13 @@ def analyze(input_file: Path = INPUT_FILE, output_file: Path = OUTPUT_FILE) -> P
         "dimensions": GROUP_DESCRIPTIONS,
         "measures": MEASURE_DESCRIPTIONS,
         "groups": _summarize_groups(data),
+        "risk_factors": _risk_factors(data),
         "correlations": _correlations(data),
         "notes": [
             "帳單及還款金額為資料中的歷史金額欄位；「近六期平均」是六個月份的簡單平均。",
             "信用額度、帳單、還款使用中位數呈現典型客戶，較不易被極少數大額數值拉高。",
-            "分組差異及 Spearman 相關只代表這批歷史資料中的一起變化，不表示因果關係。",
+            "違約率的區間為 95% Wilson 信賴區間；各組未經其他變數調整，分組差異與相關不表示因果關係。",
+            "此資料只涵蓋六期還款狀態、額度、帳單及還款金額；分析結果不可當成個人授信判斷或因果證據。",
             "學歷代碼 0、5、6 及婚姻代碼 0 合併為未分類。",
         ],
     }
