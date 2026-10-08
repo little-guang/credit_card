@@ -53,16 +53,20 @@ MEASURE_DESCRIPTIONS = {
     "default_rate": "下一期違約比例",
 }
 
-CORRELATION_COLUMNS = {
-    "AGE": "年齡",
-    "LIMIT_BAL": "信用額度",
-    "BILL_AMT1": "最近一期帳單",
-    "avg_bill_6m": "近六期平均帳單",
-    "PAY_AMT1": "最近一期還款",
-    "avg_payment_6m": "近六期平均還款",
+CORRELATION_FEATURES = {
     "delayed_months": "近六期延遲次數",
-    TARGET: "下一期違約",
+    "PAY_0": "最近一期付款狀態（PAY_0）",
+    "PAY_2": "前一期付款狀態（PAY_2）",
+    "PAY_3": "前兩期付款狀態（PAY_3）",
+    "PAY_4": "前三期付款狀態（PAY_4）",
+    "PAY_5": "前四期付款狀態（PAY_5）",
+    "PAY_6": "前五期付款狀態（PAY_6）",
+    "avg_payment_6m": "近六期平均還款金額",
+    "LIMIT_BAL": "信用額度",
+    "PAY_AMT1": "最近一期還款金額",
+    "payment_coverage": "近六期還款／帳單金額比",
 }
+CORRELATION_THRESHOLD = 0.1
 
 
 def _json_number(value: object) -> float | None:
@@ -281,18 +285,25 @@ def _risk_factors(data: pd.DataFrame) -> list[dict[str, object]]:
 
 
 def _correlations(data: pd.DataFrame) -> list[dict[str, object]]:
-    matrix = data[list(CORRELATION_COLUMNS)].corr(method="spearman")
+    bill_total = data[[f"BILL_AMT{i}" for i in range(1, 7)]].sum(axis=1)
+    payment_total = data[[f"PAY_AMT{i}" for i in range(1, 7)]].sum(axis=1)
+    data = data.copy()
+    data["payment_coverage"] = payment_total / bill_total.where(bill_total > 0)
+
     rows: list[dict[str, object]] = []
-    for index, (left, left_label) in enumerate(CORRELATION_COLUMNS.items()):
-        for right, right_label in list(CORRELATION_COLUMNS.items())[index + 1 :]:
-            rows.append(
-                {
-                    "x": left_label,
-                    "y": right_label,
-                    "rho": _json_number(matrix.loc[left, right]),
-                }
-            )
-    return rows
+    for column, label in CORRELATION_FEATURES.items():
+        paired = data[[column, TARGET]].dropna()
+        rho = paired[column].corr(paired[TARGET], method="spearman")
+        if pd.isna(rho) or abs(rho) < CORRELATION_THRESHOLD:
+            continue
+        rows.append(
+            {
+                "feature": label,
+                "rho": _json_number(rho),
+                "count": int(len(paired)),
+            }
+        )
+    return sorted(rows, key=lambda row: abs(float(row["rho"])), reverse=True)
 
 
 def analyze(input_file: Path = INPUT_FILE, output_file: Path = OUTPUT_FILE) -> Path:
@@ -309,6 +320,7 @@ def analyze(input_file: Path = INPUT_FILE, output_file: Path = OUTPUT_FILE) -> P
         "groups": _summarize_groups(data),
         "risk_factors": _risk_factors(data),
         "correlations": _correlations(data),
+        "correlation_threshold": CORRELATION_THRESHOLD,
         "notes": [
             "帳單及還款金額為資料中的歷史金額欄位；「近六期平均」是六個月份的簡單平均。",
             "信用額度、帳單、還款使用中位數呈現典型客戶，較不易被極少數大額數值拉高。",

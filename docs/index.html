@@ -193,6 +193,7 @@
         container.innerHTML = `<div class="error">無法載入族群分析資料：${escapeHtml(segmentError)}。請執行 <code>uv run python analyze_segments.py</code>。</div>`;
         riskContainer.querySelector("#risk-factor-tables").innerHTML =
           `<div class="error">無法載入行為風險分析資料：${escapeHtml(segmentError)}。請執行 <code>uv run python analyze_segments.py</code>。</div>`;
+        riskContainer.querySelector("#correlation-rows").innerHTML = "";
         return;
       }
       if (!segmentReport) return;
@@ -322,15 +323,8 @@
         <li>男性為 ${displayRate(male)}，女性為 ${displayRate(female)}；此為未調整的人口分組差異，不代表性別本身具有因果影響。</li>
         <li>高中組為 ${displayRate(highSchool)}，研究所組為 ${displayRate(graduate)}；教育分組只能描述此樣本，且不是比還款行為更直接的風險證據。</li>`;
 
-      const correlations = [...segmentReport.correlations]
-        .filter((item) => item.rho != null && (
-          item.x === "年齡" || item.y === "年齡"
-          || (item.x === "近六期延遲次數" && item.y === "下一期違約")
-        ))
-        .sort((left, right) => Math.abs(right.rho) - Math.abs(left.rho))
-        .slice(0, 8);
-      container.querySelector("#correlation-rows").innerHTML = correlations.map((item) => `
-        <tr><td>${escapeHtml(item.x)}</td><td>${escapeHtml(item.y)}</td><td>${segmentNumber(item.rho, 3)}</td></tr>
+      riskContainer.querySelector("#correlation-rows").innerHTML = segmentReport.correlations.map((item) => `
+        <tr><td>${escapeHtml(item.feature)}</td><td>${segmentNumber(item.rho, 3)}</td><td>${segmentNumber(item.count)}</td></tr>
       `).join("");
     };
     fetch("./segment-analysis.json")
@@ -472,6 +466,14 @@
             <p class="sub">比較前六期延遲紀錄、最近一期付款狀態、帳單／信用額度，以及還款金額／帳單金額。違約率是歷史樣本中的比例，不是個人預測或因果結論。</p>
             <ul id="risk-insights" class="insight-list"></ul>
             <div id="risk-factor-tables"></div>
+            <h3 style="margin-top:22px">與下期違約相關程度較高的特徵</h3>
+            <p class="sub">依 Spearman 相關係數絕對值排序，只顯示 |ρ| ≥ 0.10 的特徵；正值代表特徵較高時違約標記通常也較高，負值代表反向排序關係。樣本很大時係數可能容易達統計顯著，因此這裡著重關聯強度與可解讀性，不代表因果或調整後效果。</p>
+            <div class="analysis-table-wrap">
+              <table class="analysis-table">
+                <thead><tr><th>特徵</th><th>Spearman ρ</th><th>樣本數</th></tr></thead>
+                <tbody id="correlation-rows"></tbody>
+              </table>
+            </div>
             <div class="note">延遲期數定義為六期 PAY 欄位中大於 0 的期數。每組均列出樣本數及 95% Wilson 信賴區間；「相對比例」是違約率之比，不是勝算比。最近一期帳單／額度及六期還款／帳單都只是粗略代理指標，尤其還款與帳單可能有跨月時間差；不可單獨據此判斷個人是否會違約。</div>
           </section>
 
@@ -508,14 +510,6 @@
               </div>
               <h3 style="margin-top:22px">從這批資料觀察到的差異</h3>
               <ul id="segment-insights" class="insight-list"></ul>
-              <h3 style="margin-top:22px">金額及還款狀況的相關程度</h3>
-              <p class="sub">Spearman 相關係數介於 -1 到 1；正數代表兩者通常一起增加，負數代表一項增加時另一項通常減少，接近 0 表示沒有明顯的單調關係。相關不代表因果。</p>
-              <div class="analysis-table-wrap">
-                <table class="analysis-table">
-                  <thead><tr><th>項目一</th><th>項目二</th><th>相關係數</th></tr></thead>
-                  <tbody id="correlation-rows"></tbody>
-                </table>
-              </div>
               <div class="note">資料沒有逐筆消費明細或商店/品項消費金額，因此這裡分析的是每月帳單金額、還款金額和信用額度，不是實際刷卡消費明細。PAY 還款狀態中的正值代表延遲；「近六期延遲次數」是六期中 PAY 值大於 0 的期數。學歷代碼 0、5、6 及婚姻代碼 0 合併為「未分類」；未分類/其他部分組別樣本較少，結果不宜直接比較下結論。分析呈現的是同時出現的關聯，不能解讀成某種年齡、性別或學歷造成違約。</div>
             </div>
           </section>
